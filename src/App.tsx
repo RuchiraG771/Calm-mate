@@ -5,8 +5,8 @@ import Index from "./pages/Index";
 import Analysis from "./pages/Analysis";
 import Breathing from "./pages/Breathing";
 import NotFound from "./pages/NotFound";
-import TextAnalysis from "./components/TextAnalysis";
-import Wellness from "./components/Wellness";
+import TextAnalysis from "./component/TextAnalysis";
+import Wellness from "./component/Wellness";
 
 function App() {
   return (

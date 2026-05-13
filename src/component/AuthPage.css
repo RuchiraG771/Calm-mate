@@ -1,0 +1,155 @@
+/* ===== CONTAINER ===== */
+.container{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  perspective:1200px;
+}
+
+/* ===== CARD ===== */
+.card{
+  width:950px;
+  height:560px;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform 1s ease;
+  border-radius:20px;
+  padding:5px;
+}
+
+
+.card.flip{
+  transform:rotateY(180deg);
+}
+
+/* ===== SIDES ===== */
+.side{
+  position:absolute;
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:40px;
+  background:white;
+  border-radius:20px;
+  backface-visibility:hidden;
+  overflow:hidden;
+  gap:10px;
+}
+
+
+
+.signup{
+  transform:rotateY(180deg);
+}
+
+/* ===== LEFT GRADIENT PANEL ===== */
+.brand{
+  width:36%;          /* increased */
+  height:100%;
+
+  background:linear-gradient(135deg,#a855f7,#ec4899);
+  border-radius:20px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+
+  color:white;
+  text-align:center;
+  padding:25px;       /* more breathing space */
+}
+
+.brand img{
+  width:160px;
+  height:160px;
+  border-radius:50%;
+  background:white;
+  padding:15px;       /* more white space */
+  object-fit:contain;
+  margin-bottom:12px;
+}
+
+/* ===== FORM CENTER ===== */
+.form-content{
+  width:36%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+
+  margin-left:20px;   /* ⭐ pushes form right */
+}
+
+.welcome-text{
+  font-size:26px;
+  font-weight:700;
+  color:#6b21a8;
+  margin-bottom:8px;
+  white-space:nowrap;
+}
+
+.form-title{
+  font-size:22px;
+  margin-bottom:15px;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  margin:8px 0;
+  border-radius:10px;
+  border:1px solid #ddd;
+  outline:none;
+  font-size:14px;
+}
+
+input:focus{
+  border-color:#a855f7;
+  box-shadow:0 0 6px rgba(168,85,247,0.3);
+}
+
+.btn{
+  width:100%;
+  padding:14px;
+  margin-top:12px;
+  border:none;
+  border-radius:14px;
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+  background:linear-gradient(90deg,#a855f7,#ec4899);
+}
+
+.switch{
+  margin-top:12px;
+}
+
+.switch span{
+  color:#a855f7;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* ===== CHARACTER RIGHT ===== */
+.character-area{
+  width:30%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  margin-left:25px;   /* gap from form */
+}
+
+.character-area img{
+  width:200px;
+  animation:floatCharacter 4s ease-in-out infinite;
+}
+
+@keyframes floatCharacter{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-12px);}
+}
