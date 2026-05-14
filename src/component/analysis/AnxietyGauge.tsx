@@ -6,10 +6,10 @@ interface AnxietyGaugeProps {
 }
 
 const getLevel = (score: number) => {
-  if (score < 25) return { label: "LOW ANXIETY", color: "bg-green-500", text: "text-green-400" };
-  if (score < 50) return { label: "MODERATE ANXIETY", color: "bg-yellow-500", text: "text-yellow-400" };
-  if (score < 75) return { label: "HIGH ANXIETY", color: "bg-orange-500", text: "text-orange-400" };
-  return { label: "SEVERE ANXIETY", color: "bg-red-500", text: "text-red-400" };
+  if (score < 25) return { label: "LOW STRESS", color: "bg-green-500", text: "text-green-400" };
+  if (score < 50) return { label: "MODERATE STRESS", color: "bg-yellow-500", text: "text-yellow-400" };
+  if (score < 75) return { label: "HIGH STRESS", color: "bg-orange-500", text: "text-orange-400" };
+  return { label: "SEVERE STRESS", color: "bg-red-500", text: "text-red-400" };
 };
 
 const AnxietyGauge = ({ score, confidence }: AnxietyGaugeProps) => {
@@ -20,7 +20,7 @@ const AnxietyGauge = ({ score, confidence }: AnxietyGaugeProps) => {
   return (
     <div className="glass-card rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-semibold text-foreground">Anxiety Level</h3>
+        <h3 className="text-base font-semibold text-foreground">Stress Level</h3>
         <span className="text-sm text-primary">Confidence {Math.round(confidence)}%</span>
       </div>
 

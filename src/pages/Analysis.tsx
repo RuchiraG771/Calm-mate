@@ -9,12 +9,13 @@ import StressHeatmap from "@/components/analysis/StressHeatmap";
 import SessionTimeline from "@/components/analysis/SessionTimeline";
 import EmotionAnalysis from "@/components/analysis/EmotionAnalysis";
 import BehavioralIndicators from "@/components/analysis/BehavioralIndicators";
+import RealTimeRecommendations from "@/components/analysis/RealTimeRecommendations";
 
-const getAnxietyFromExpressions = (expressions: faceapi.FaceExpressions) => {
+const getStressFromExpressions = (expressions: faceapi.FaceExpressions) => {
   const { angry, disgusted, fearful, sad, surprised, happy, neutral } = expressions;
-  const anxietyScore = (fearful * 1.0 + sad * 0.7 + angry * 0.5 + disgusted * 0.4 + surprised * 0.3) * 100;
+  const stressScore = (fearful * 1.0 + sad * 0.7 + angry * 0.5 + disgusted * 0.4 + surprised * 0.3) * 100;
   const calmScore = (happy * 0.8 + neutral * 0.6) * 100;
-  return Math.min(100, Math.max(0, anxietyScore - calmScore * 0.3 + 15));
+  return Math.min(100, Math.max(0, stressScore - calmScore * 0.3 + 15));
 };
 
 const getDominantEmotion = (expressions: faceapi.FaceExpressions) => {
@@ -39,7 +40,7 @@ const Analysis = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [modelError, setModelError] = useState<string | null>(null);
-  const [anxietyScore, setAnxietyScore] = useState(0);
+  const [stressScore, setStressScore] = useState(0);
   const [confidence, setConfidence] = useState(0);
   const [dominantEmotion, setDominantEmotion] = useState("neutral");
   const [emotions, setEmotions] = useState<Record<string, number>>({});
@@ -47,16 +48,16 @@ const Analysis = () => {
   const [blinkCount, setBlinkCount] = useState(0);
   const [headMovement, setHeadMovement] = useState(0);
   const [stressRegions, setStressRegions] = useState({ forehead: 0, eyes: 0, mouth: 0, jaw: 0 });
-  const [timelineData, setTimelineData] = useState<{ time: string; anxiety: number; fear: number }[]>([]);
-  const [peakAnxiety, setPeakAnxiety] = useState(0);
-  const [avgAnxiety, setAvgAnxiety] = useState(0);
+  const [timelineData, setTimelineData] = useState<{ time: string; stress: number; fear: number }[]>([]);
+  const [peakStress, setPeakStress] = useState(0);
+  const [avgStress, setAvgStress] = useState(0);
   const [sessionTime, setSessionTime] = useState(0);
 
   const blinkCooldownRef = useRef(false);
   const intervalRef = useRef<number>();
   const timerRef = useRef<number>();
   const lastFacePosRef = useRef<{ x: number; y: number } | null>(null);
-  const anxietyHistoryRef = useRef<number[]>([]);
+  const stressHistoryRef = useRef<number[]>([]);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -88,9 +89,9 @@ const Analysis = () => {
         setBlinkCount(0);
         setHeadMovement(0);
         setTimelineData([]);
-        setPeakAnxiety(0);
-        setAvgAnxiety(0);
-        anxietyHistoryRef.current = [];
+        setPeakStress(0);
+        setAvgStress(0);
+        stressHistoryRef.current = [];
         lastFacePosRef.current = null;
 
         timerRef.current = window.setInterval(() => setSessionTime((t) => t + 1), 1000);
@@ -114,7 +115,7 @@ const Analysis = () => {
             setFaceDetected(true);
             const resized = faceapi.resizeResults(detections, displaySize);
             const box = resized.detection.box;
-            const anxiety = getAnxietyFromExpressions(detections.expressions);
+            const stress = getStressFromExpressions(detections.expressions);
             const conf = Math.round(detections.detection.score * 100);
 
             setConfidence(conf);
@@ -200,7 +201,7 @@ const Analysis = () => {
             }
 
             // Update scores
-            setAnxietyScore(anxiety);
+            setStressScore(stress);
             setDominantEmotion(getDominantEmotion(detections.expressions));
             setEmotions(
               Object.fromEntries(
@@ -209,17 +210,17 @@ const Analysis = () => {
             );
 
             // Timeline
-            anxietyHistoryRef.current.push(anxiety);
-            const peak = Math.max(...anxietyHistoryRef.current);
-            const avg = anxietyHistoryRef.current.reduce((a, b) => a + b, 0) / anxietyHistoryRef.current.length;
-            setPeakAnxiety(peak);
-            setAvgAnxiety(avg);
+            stressHistoryRef.current.push(stress);
+            const peak = Math.max(...stressHistoryRef.current);
+            const avg = stressHistoryRef.current.reduce((a, b) => a + b, 0) / stressHistoryRef.current.length;
+            setPeakStress(peak);
+            setAvgStress(avg);
 
             setTimelineData((prev) => {
               const sec = prev.length * 0.2;
               const newEntry = {
                 time: `${Math.floor(sec)}s`,
-                anxiety: Math.round(anxiety),
+                stress: Math.round(stress),
                 fear: Math.round(detections.expressions.fearful * 100),
               };
               // Keep last 100 entries
@@ -330,7 +331,7 @@ const Analysis = () => {
               transition={{ delay: 0.2 }}
               className="space-y-4"
             >
-              <AnxietyGauge score={anxietyScore} confidence={confidence} />
+              <AnxietyGauge score={stressScore} confidence={confidence} />
               <StressHeatmap {...stressRegions} />
             </motion.div>
           </div>
@@ -344,9 +345,9 @@ const Analysis = () => {
             >
               <SessionTimeline
                 data={timelineData}
-                peak={peakAnxiety}
-                average={avgAnxiety}
-                current={anxietyScore}
+                peak={peakStress}
+                average={avgStress}
+                current={stressScore}
               />
             </motion.div>
 
@@ -358,6 +359,7 @@ const Analysis = () => {
             >
               <EmotionAnalysis emotions={emotions} dominant={dominantEmotion} />
               <BehavioralIndicators blinkCount={blinkCount} headMovement={headMovement} />
+              <RealTimeRecommendations stressScore={stressScore} />
             </motion.div>
           </div>
         </div>

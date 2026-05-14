@@ -71,6 +71,18 @@ def login():
     else:
         return jsonify({"message": "Invalid credentials"}), 401
 
+@app.route("/api/user/<username>", methods=["GET"])
+def get_user(username):
+    user = User.query.filter_by(username=username).first()
+    if user:
+        return jsonify({
+            "username": user.username,
+            "age": user.age,
+            "mobile": user.mobile
+        })
+    else:
+        return jsonify({"message": "User not found"}), 404
+
 # ======================
 
 if __name__ == "__main__":

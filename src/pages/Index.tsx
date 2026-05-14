@@ -58,9 +58,6 @@ const Index = () => {
                   Start Analysis <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="text-base px-8">
-                <Link to="/breathing">Try Breathing Exercise</Link>
-              </Button>
             </div>
           </motion.div>
         </div>

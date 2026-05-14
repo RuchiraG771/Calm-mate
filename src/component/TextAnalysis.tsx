@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Navbar from "./Navbar";
 
 function getStressAnalysisFallback(score: number) {
   let mood = "Neutral";
@@ -56,26 +57,23 @@ function StressResult({ result }: any) {
         marginTop: 20,
         padding: 20,
         borderRadius: 12,
-        background: "#111827",
-        color: "white",
+        background: "var(--card, #111827)",
+        border: "1px solid var(--border)",
+        color: "var(--foreground, white)",
       }}
     >
-      <h2>Analysis Result</h2>
-
-      <p>Mood: {result.mood}</p>
-
-      <p>Stress Score: {result.stress_score}</p>
-
-      <p>Stress Level: {result.stress_level}</p>
-
-      <p>Confidence: {result.confidence}%</p>
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>Analysis Result</h2>
+      <p style={{ marginBottom: 6 }}><strong>Mood:</strong> {result.mood}</p>
+      <p style={{ marginBottom: 6 }}><strong>Stress Score:</strong> {result.stress_score}</p>
+      <p style={{ marginBottom: 6 }}><strong>Stress Level:</strong> {result.stress_level}</p>
+      <p><strong>Confidence:</strong> {result.confidence}%</p>
     </div>
   );
 }
 
 function TextAnalysis() {
-  const [text, setText]     = useState("");
-  const [result, setResult] = useState(null);
+  const [text, setText] = useState("");
+  const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
 
@@ -93,8 +91,8 @@ function TextAnalysis() {
       let score = 40;
       const lower = text.toLowerCase();
       if (lower.includes("stress") || lower.includes("tired") || lower.includes("overthinking")) score += 30;
-      if (lower.includes("happy") || lower.includes("good") || lower.includes("relaxed"))       score -= 20;
-      if (lower.includes("anxious") || lower.includes("worried"))                                score += 25;
+      if (lower.includes("happy") || lower.includes("good") || lower.includes("relaxed")) score -= 20;
+      if (lower.includes("anxious") || lower.includes("worried")) score += 25;
       score = Math.max(10, Math.min(90, score));
       const fb = getStressAnalysisFallback(score);
       setResult({
@@ -107,70 +105,58 @@ function TextAnalysis() {
     setStatusMsg(""); setLoading(false);
   };
 
-  const EXAMPLES = [
-    "I'm feeling really stressed and overwhelmed with work lately",
-    "I had a great day! Feeling calm and happy",
-    "I can't stop overthinking everything, I'm so anxious",
-  ];
-
   return (
-    <div>
-      <div className="page-title" style={{ marginBottom: 4 }}>✍️ Text Mood Analysis</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-        <div style={{ color: "var(--text2)", fontSize: 13 }}>AI sentiment & stress analysis</div>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="pt-24 pb-12 px-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="page-title text-3xl font-bold mb-2">✍️ Text Mood Analysis</div>
+
+          {!result ? (
+            <div className="glass-card rounded-xl p-8 max-w-2xl mx-auto border border-border/50 shadow-lg">
+              <div className="font-bold text-lg mb-4 text-foreground">
+                💬 How are you feeling?
+              </div>
+
+              <textarea
+                className="w-full bg-input/50 border border-border rounded-lg p-4 text-foreground focus:ring-2 focus:ring-primary outline-none transition-all resize-none mb-4"
+                style={{ minHeight: 130 }}
+                placeholder="Type your thoughts freely..."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+              />
+
+              {statusMsg && (
+                <div className="text-sm text-primary mb-4 animate-pulse">
+                  {statusMsg}
+                </div>
+              )}
+
+              <button
+                className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                onClick={analyze}
+                disabled={loading || !text.trim()}
+              >
+                {loading ? "Analyzing..." : "🔍 Analyze with AI"}
+              </button>
+            </div>
+          ) : (
+            <div className="max-w-2xl mx-auto">
+              <StressResult result={result} />
+
+              <button
+                className="mt-6 px-6 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
+                onClick={() => {
+                  setResult(null);
+                  setText("");
+                }}
+              >
+                🔄 Analyze Again
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-           
-     {!result ? (
-  <div className="card" style={{ maxWidth: 600, margin: "0 auto" }}>
-    <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>
-      💬 How are you feeling?
-    </div>
-
-    <textarea
-      className="input"
-      style={{ marginBottom: 14, minHeight: 130 }}
-      placeholder="Type your thoughts freely..."
-      value={text}
-      onChange={(e) => setText(e.target.value)}
-    />
-
-    {statusMsg && (
-      <div
-        style={{
-          fontSize: 12,
-          color: "cyan",
-          marginBottom: 10,
-        }}
-      >
-        {statusMsg}
-      </div>
-    )}
-
-    <button
-      className="btn btn-primary"
-      style={{ width: "100%" }}
-      onClick={analyze}
-      disabled={loading || !text.trim()}
-    >
-      {loading ? "Analyzing..." : "🔍 Analyze with AI"}
-    </button>
-  </div>
-) : (
-  <div style={{ maxWidth: 600, margin: "0 auto" }}>
-    <StressResult result={result} />
-
-    <button
-      className="btn btn-secondary"
-      style={{ marginTop: 14 }}
-      onClick={() => {
-        setResult(null);
-        setText("");
-      }}
-    >
-      🔄 Analyze Again
-    </button>
-  </div>
-)}
     </div>
   );
 }

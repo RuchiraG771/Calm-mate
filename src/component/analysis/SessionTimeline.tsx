@@ -2,7 +2,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tool
 
 interface TimelineEntry {
   time: string;
-  anxiety: number;
+  stress: number;
   fear: number;
 }
 
@@ -20,7 +20,7 @@ const SessionTimeline = ({ data, peak, average, current }: SessionTimelineProps)
         <h3 className="text-base font-semibold text-foreground">Session Timeline</h3>
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-primary" /> Anxiety
+            <div className="w-2 h-2 rounded-full bg-primary" /> Stress
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full bg-yellow-500" /> Fear
@@ -50,7 +50,7 @@ const SessionTimeline = ({ data, peak, average, current }: SessionTimelineProps)
                 color: "hsl(var(--foreground))",
               }}
             />
-            <Line type="monotone" dataKey="anxiety" stroke="hsl(168, 76%, 42%)" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="stress" stroke="hsl(168, 76%, 42%)" strokeWidth={2} dot={false} />
             <Line type="monotone" dataKey="fear" stroke="#EAB308" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
