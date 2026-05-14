@@ -359,7 +359,9 @@ const Analysis = () => {
             >
               <EmotionAnalysis emotions={emotions} dominant={dominantEmotion} />
               <BehavioralIndicators blinkCount={blinkCount} headMovement={headMovement} />
-              <RealTimeRecommendations stressScore={stressScore} />
+              {(isRunning || timelineData.length > 0) && (
+                <RealTimeRecommendations stressScore={stressScore} />
+              )}
             </motion.div>
           </div>
         </div>

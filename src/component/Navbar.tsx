@@ -24,6 +24,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { getUserPoints, checkDailyPointsDeduction } from "@/lib/utils";
+import { Coins } from "lucide-react";
+
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -32,6 +35,23 @@ const Navbar = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [points, setPoints] = useState(getUserPoints());
+
+  useEffect(() => {
+    checkDailyPointsDeduction();
+    setPoints(getUserPoints());
+    
+    // Listen for storage changes to update points in real-time across tabs
+    const handleStorageChange = () => setPoints(getUserPoints());
+    window.addEventListener("storage", handleStorageChange);
+    // Custom event for same-tab updates
+    window.addEventListener("pointsUpdated", handleStorageChange);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("pointsUpdated", handleStorageChange);
+    };
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -93,6 +113,16 @@ const Navbar = () => {
               Text Analysis
             </Link>
             <Link
+              to="/questionnaire"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === "/questionnaire"
+                  ? "text-cyan-400"
+                  : "text-muted-foreground"
+              }`}
+            >
+              Questionnaire
+            </Link>
+            <Link
               to="/wellness"
               className={`text-sm font-medium transition-colors hover:text-primary ${
                 location.pathname === "/wellness"
@@ -102,6 +132,13 @@ const Navbar = () => {
             >
               Wellness
             </Link>
+
+            {userData && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mr-2">
+                <Coins className="w-4 h-4 text-primary" />
+                <span className="text-sm font-bold text-foreground">{points}</span>
+              </div>
+            )}
 
             {userData && (
               <DropdownMenu>

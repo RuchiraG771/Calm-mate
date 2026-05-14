@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Account from "./pages/Account";
 import TextAnalysis from "./component/TextAnalysis";
 import Wellness from "./component/Wellness";
+import Questionnaire from "./pages/Questionnaire";
 
 function App() {
   return (
@@ -28,6 +29,8 @@ function App() {
         <Route path="*" element={<NotFound />} />
 
         <Route path="/text-analysis" element={<TextAnalysis />} />
+
+        <Route path="/questionnaire" element={<Questionnaire />} />
 
         <Route path="/wellness" element={<Wellness />} />
       </Routes>
