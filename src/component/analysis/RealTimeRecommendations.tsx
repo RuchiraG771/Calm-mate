@@ -1,7 +1,7 @@
-import { ArrowRight, Activity, Wind, Sparkles, CheckCircle, Play } from "lucide-react";
+import { ArrowRight, Activity, Heart, Wind, Sparkles, CheckCircle, Play } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { getAnalysisDetailsFromScore, getTabFromSuggestion, setActivitySequence, addUserPoints } from "@/lib/utils";
+import { getAnalysisDetailsFromScore, getTabFromSuggestion, setActivitySequence } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
 interface RealTimeRecommendationsProps {
@@ -55,23 +55,21 @@ const RealTimeRecommendations = ({ stressScore }: RealTimeRecommendationsProps) 
   };
   
   return (
-    <div className={`neural-card p-8 border transition-all duration-700 shadow-2xl ${color.split(' ')[0]} ${color.split(' ')[1]}`}>
-      <div className="flex items-start gap-6">
-        <div className="mt-1 p-3 bg-white/5 rounded-2xl border border-white/10 shadow-inner">
+    <div className={`glass-card rounded-xl p-5 border transition-all ${color}`}>
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5">
           {icon}
         </div>
         <div className="w-full">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-            <h4 className="font-black text-xl uppercase tracking-tighter text-white">{details.mood.split(' ')[0]} State</h4>
-            <div className="flex items-center gap-3">
-              <div className={`px-4 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest ${color.split(' ')[2]}`}>
-                {details.level} Amplitude
-              </div>
-            </div>
+          <div className="flex items-center gap-2 mb-1">
+            <h4 className="font-semibold text-base">{details.mood.split(' ')[0]} Mood</h4>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-background/50 border border-border">
+              {details.level} Stress
+            </span>
           </div>
-          <p className="text-sm font-bold text-white/40 mb-8 uppercase tracking-wide leading-relaxed">{description}</p>
+          <p className="text-sm text-muted-foreground mb-4">{description}</p>
           
-          <div className="flex flex-col gap-4 mb-10">
+          <div className="flex flex-col gap-2 mb-4">
             {details.suggestions.map((s: string, i: number) => {
               const isCompleted = completedSteps.includes(i);
               const isCurrent = i === completedSteps.length;
@@ -79,41 +77,44 @@ const RealTimeRecommendations = ({ stressScore }: RealTimeRecommendationsProps) 
               return (
                 <div 
                   key={i} 
-                  className={`flex items-center justify-between px-6 py-4 rounded-[2rem] border transition-all duration-500 ${
-                    isCompleted ? 'bg-green-500/5 border-green-500/20 text-green-500/60' : 
-                    isCurrent ? 'bg-cyan-500/10 border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.1)] text-white scale-[1.02]' : 
-                    'bg-white/[0.02] border-white/5 text-white/20'
+                  className={`flex items-center justify-between text-xs font-medium px-3 py-2 rounded-md border transition-all duration-300 ${
+                    isCompleted ? 'bg-green-500/10 border-green-500/30 text-green-500 opacity-60' : 
+                    isCurrent ? 'bg-primary/20 border-primary shadow-sm text-foreground scale-[1.02]' : 
+                    'bg-background/30 border-border/50 text-muted-foreground'
                   }`}
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
                     {isCompleted ? (
-                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <CheckCircle className="w-4 h-4" />
                     ) : (
-                      <div className={`w-5 h-5 rounded-full border-2 ${isCurrent ? 'border-cyan-400 animate-pulse' : 'border-white/10'} flex-shrink-0`} />
+                      <div className="w-4 h-4 rounded-full border border-current opacity-50 flex-shrink-0" />
                     )}
-                    <span className={`text-xs font-black uppercase tracking-widest ${isCompleted ? "line-through" : ""}`}>{s}</span>
+                    <span className={isCompleted ? "line-through opacity-80" : ""}>{s}</span>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
                     {isCurrent && (
                       <>
                         <Button 
                           size="sm" 
-                          className="h-10 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white font-black uppercase tracking-widest text-[10px] px-6 transition-all" 
+                          variant="ghost" 
+                          className="h-6 text-[10px] px-2 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30" 
                           onClick={() => handleStartActivity(i)}
                         >
-                          <Play className="w-3 h-3 mr-2" /> Execute
+                          <Play className="w-3 h-3 mr-1" /> Start
                         </Button>
                         <Button 
                           size="sm" 
                           variant="ghost" 
-                          className="h-10 rounded-xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white font-black uppercase tracking-widest text-[10px] px-6 border border-white/5" 
+                          className="h-6 text-[10px] px-2 bg-background/50 hover:bg-background" 
                           onClick={() => {
                             setCompletedSteps([...completedSteps, i]);
-                            addUserPoints(10);
-                            window.dispatchEvent(new Event("pointsUpdated"));
+                            import("@/lib/utils").then(u => {
+                              u.addUserPoints(10);
+                              window.dispatchEvent(new Event("pointsUpdated"));
+                            });
                           }}
                         >
-                          Sync
+                          Done
                         </Button>
                       </>
                     )}
@@ -123,39 +124,39 @@ const RealTimeRecommendations = ({ stressScore }: RealTimeRecommendationsProps) 
             })}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
             <div 
-              className="p-6 rounded-[2.5rem] bg-white/[0.02] border border-white/5 cursor-pointer hover:bg-white/[0.05] hover:border-cyan-400/20 transition-all group shadow-inner"
+              className="p-3 rounded-lg bg-background/40 border border-border/50 cursor-pointer hover:bg-background/60 transition-colors"
               onClick={handleDietClick}
             >
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-4 flex items-center justify-between group-hover:text-cyan-400/60 transition-colors">
-                <span>🥗 Nutritional Protocol</span>
-                <ArrowRight className="w-4 h-4" />
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 font-bold flex items-center justify-between">
+                <span>🥗 Recommended Diet</span>
+                <ArrowRight className="w-3 h-3" />
               </div>
-              <p className="text-xs font-black text-white/60 uppercase tracking-widest leading-relaxed group-hover:text-white transition-colors">{(details as any).dietPlan}</p>
+              <p className="text-xs text-foreground leading-relaxed">{(details as any).dietPlan}</p>
             </div>
             <div 
-              className="p-6 rounded-[2.5rem] bg-white/[0.02] border border-white/5 cursor-pointer hover:bg-white/[0.05] hover:border-purple-400/20 transition-all group shadow-inner"
+              className="p-3 rounded-lg bg-background/40 border border-border/50 cursor-pointer hover:bg-background/60 transition-colors"
               onClick={() => {
                 setActivitySequence(details.suggestions, 0, stressScore);
                 navigate(`/wellness?tab=yoga`);
               }}
             >
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-4 flex items-center justify-between group-hover:text-purple-400/60 transition-colors">
-                <span>🧘 Somatic Alignment</span>
-                <ArrowRight className="w-4 h-4" />
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 font-bold flex items-center justify-between">
+                <span>🧘 Yoga Poses</span>
+                <ArrowRight className="w-3 h-3" />
               </div>
-              <p className="text-xs font-black text-white/60 uppercase tracking-widest leading-relaxed group-hover:text-white transition-colors">{(details as any).yogaTypes}</p>
+              <p className="text-xs text-foreground leading-relaxed">{(details as any).yogaTypes}</p>
             </div>
           </div>
 
           {isAllDone ? (
-            <div className="text-center py-6 bg-green-500/10 text-green-500 rounded-[2rem] font-black text-[10px] uppercase tracking-[0.4em] border border-green-500/20 shadow-[0_0_30px_rgba(34,197,94,0.1)]">
-              🎉 Protocol sequence complete
+            <div className="text-center py-2.5 bg-green-500/20 text-green-500 rounded-md font-semibold text-sm border border-green-500/30">
+              🎉 All suggested activities completed!
             </div>
           ) : (
-            <Button onClick={startNextActivity} className="w-full sm:w-auto h-14 px-10 rounded-2xl bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-black uppercase tracking-widest text-[11px] shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:scale-[1.02] transition-all">
-              Initiate Next Step <ArrowRight className="w-4 h-4 ml-3" />
+            <Button onClick={startNextActivity} variant="outline" className="w-full sm:w-auto h-9 text-xs glow-primary border-primary/50">
+              Start Next Recommended Activity <ArrowRight className="w-3 h-3 ml-2" />
             </Button>
           )}
         </div>
@@ -163,7 +164,6 @@ const RealTimeRecommendations = ({ stressScore }: RealTimeRecommendationsProps) 
     </div>
   );
 };
-
 
 export default RealTimeRecommendations;
 

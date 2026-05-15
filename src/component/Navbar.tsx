@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Brain, User, Bell, Moon, Sun, ShieldAlert, LogOut, Heart } from "lucide-react";
+import { Brain, User, Bell, Moon, Sun, ShieldAlert, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "./ThemeProvider";
 import { auth, db } from "@/lib/firebase";
@@ -87,50 +87,51 @@ const Navbar = () => {
         className="fixed top-0 left-0 right-0 z-50 glass-card border-t-0 border-x-0"
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link to="/home" className="flex items-center gap-2 group">
-            <div className="p-2 bg-cyan-500/10 rounded-xl border border-cyan-500/20 group-hover:bg-cyan-500/20 transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
-              <Brain className="w-6 h-6 text-cyan-400" />
-            </div>
-            <span className="text-xl font-black futuristic-header tracking-widest">CalmMate</span>
+          <Link to="/home" className="flex items-center gap-2">
+            <Brain className="w-7 h-7 text-primary" />
+            <span className="text-xl font-bold text-foreground">CalmMate</span>
           </Link>
 
-          <div className="flex items-center gap-8">
-            {[
-              { path: "/analysis", label: "Analysis" },
-              { path: "/text-analysis", label: "Text Analysis" },
-              { path: "/questionnaire", label: "Questionnaire" },
-              { path: "/wellness", label: "Wellness" },
-            ].map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-500 hover:text-cyan-400 relative group ${
-                  location.pathname === item.path ? "text-cyan-400" : "text-white/40"
-                }`}
-              >
-                {item.label}
-                <motion.div 
-                  className="absolute -bottom-1 left-0 h-[2px] bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]"
-                  initial={{ width: 0 }}
-                  animate={{ width: location.pathname === item.path ? "100%" : 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-              </Link>
-            ))}
-
-            <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 p-2 px-4 rounded-2xl ml-4 shadow-xl">
-              <div className="flex gap-1.5">
-                <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 animate-pulse" />
-                <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 animate-pulse" />
-                <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 animate-pulse" />
-              </div>
-              <div className="h-5 w-[1px] bg-white/10" />
-              <div className="text-right">
-                <div className="text-[8px] text-cyan-400/50 uppercase font-black tracking-tighter leading-none">Status</div>
-                <div className="text-[10px] font-black text-white tracking-widest leading-tight uppercase">Calm-X88</div>
-              </div>
-            </div>
-
+          <div className="flex items-center gap-6">
+            <Link
+              to="/analysis"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === "/analysis" ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              Analysis
+            </Link>
+            
+            <Link
+              to="/text-analysis"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === "/text-analysis"
+                  ? "text-cyan-400"
+                  : "text-muted-foreground"
+              }`}
+            >
+              Text Analysis
+            </Link>
+            <Link
+              to="/questionnaire"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === "/questionnaire"
+                  ? "text-cyan-400"
+                  : "text-muted-foreground"
+              }`}
+            >
+              Questionnaire
+            </Link>
+            <Link
+              to="/wellness"
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === "/wellness"
+                  ? "text-cyan-400"
+                  : "text-muted-foreground"
+              }`}
+            >
+              Wellness
+            </Link>
 
             {userData && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mr-2">

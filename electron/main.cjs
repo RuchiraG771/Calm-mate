@@ -26,26 +26,9 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:8080');
     mainWindow.webContents.openDevTools();
   } else {
-    const indexPath = path.join(app.getAppPath(), 'dist/index.html');
-    mainWindow.loadFile(indexPath).catch(err => {
-      console.error('Failed to load index.html:', err);
-    });
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
-
-  // Debugging helper: allow opening DevTools in production if needed
-  mainWindow.webContents.on('before-input-event', (event, input) => {
-    if (input.control && input.shift && input.key.toLowerCase() === 'i') {
-      mainWindow.webContents.openDevTools();
-      event.preventDefault();
-    }
-  });
-
-  // Handle load failures
-  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
-    console.error(`Page failed to load: ${errorDescription} (${errorCode})`);
-  });
 }
-
 
 app.whenReady().then(() => {
   createWindow();
