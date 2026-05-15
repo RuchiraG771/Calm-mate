@@ -1,5 +1,5 @@
 import Navbar from "@/components/Navbar";
-import { User, Mail, Shield, Bell, Key, CreditCard, Activity, Clock, LogOut, Phone, Camera, Save, X, CheckCircle2 } from "lucide-react";
+import { User, Mail, Shield, Bell, Key, CreditCard, Activity, Clock, LogOut, Phone, Camera, Save, X, CheckCircle2, Sparkles, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 const Account = () => {
   const navigate = useNavigate();
@@ -53,8 +55,8 @@ const Account = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-primary font-bold animate-pulse text-xl">Loading Account...</div>
+      <div className="min-h-screen bg-[#0a0a1f] flex items-center justify-center">
+        <div className="text-cyan-400 font-black animate-pulse text-xl uppercase tracking-[0.3em]">Synchronizing Profile...</div>
       </div>
     );
   }
@@ -123,23 +125,67 @@ const Account = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#0a0a1f] text-white relative overflow-hidden">
       <Navbar />
-      <div className="pt-24 pb-12 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="page-title text-3xl font-bold mb-2">👤 My Account</div>
-          <div className="text-muted-foreground mb-8">Manage your profile, preferences, and security</div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+      {/* Background Particles */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-cyan-400/10 blur-3xl"
+            style={{
+              width: Math.random() * 400 + 100,
+              height: Math.random() * 400 + 100,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              opacity: [0.1, 0.2, 0.1],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="pt-24 pb-32 px-6 relative z-10">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+            <div>
+              <motion.h1 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-4xl md:text-5xl font-black futuristic-header mb-2"
+              >
+                👤 Profile Node
+              </motion.h1>
+              <p className="text-cyan-400/60 font-medium tracking-wide uppercase text-xs">Identity Management & Neural Preferences</p>
+            </div>
+            
+            <div className="flex items-center gap-4 bg-white/5 backdrop-blur-xl border border-white/10 p-2 rounded-2xl shadow-2xl">
+              <div className="flex gap-1.5 px-3 py-1.5 bg-red-500/10 rounded-full border border-red-500/20">
+                <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Verified User</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
             {/* Left Column: Profile Card */}
-            <div className="md:col-span-1 space-y-6">
-              <div className="glass-card rounded-2xl p-6 border-border/50 text-center relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-br from-primary/20 to-cyan-400/20" />
+            <div className="md:col-span-1 space-y-8">
+              <div className="neural-card p-8 text-center relative overflow-hidden group shadow-2xl">
+                <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-cyan-500/20 to-purple-600/20 opacity-50" />
                 
-                <div className="relative w-24 h-24 mx-auto mb-4 z-10 group">
-                  <Avatar className="w-full h-full border-4 border-background bg-card">
+                <div className="relative w-32 h-32 mx-auto mb-6 z-10">
+                  <Avatar className="w-full h-full border-4 border-white/10 bg-[#0a0a1f] shadow-[0_0_30px_rgba(34,211,238,0.2)]">
                     <AvatarImage src={localImagePreview || userData?.photoURL || ""} className="object-cover" />
-                    <AvatarFallback className="bg-primary/20 text-primary text-3xl font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-purple-600 text-white text-4xl font-black uppercase">
                       {userData?.username?.[0]?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -147,9 +193,9 @@ const Account = () => {
                   {isEditing && (
                     <button 
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center border-2 border-background cursor-pointer hover:bg-primary/90 transition"
+                      className="absolute bottom-1 right-1 w-10 h-10 bg-cyan-500 text-white rounded-2xl flex items-center justify-center border-2 border-[#0a0a1f] cursor-pointer hover:bg-cyan-400 transition-all shadow-lg active:scale-90"
                     >
-                      <Camera className="w-4 h-4" />
+                      <Camera className="w-5 h-5" />
                     </button>
                   )}
                   <input 
@@ -162,54 +208,55 @@ const Account = () => {
                 </div>
 
                 {errorMsg && (
-                  <div className="mb-4 bg-destructive/10 border border-destructive text-destructive text-xs p-2 rounded-md">
+                  <div className="mb-6 bg-red-500/10 border border-red-500/30 text-red-500 text-xs p-3 rounded-xl font-bold">
                     {errorMsg}
                   </div>
                 )}
 
-                <h2 className="text-xl font-bold text-foreground mb-1 relative z-10">
+                <h2 className="text-2xl font-black text-white mb-1 relative z-10 tracking-tight">
                   {isEditing ? (
                     <input 
                       type="text" 
                       value={editForm.username}
                       onChange={(e) => setEditForm({...editForm, username: e.target.value})}
-                      className="w-full bg-card/50 border border-border text-center rounded-md py-1 outline-none focus:border-primary"
+                      className="w-full bg-white/5 border border-white/10 text-center rounded-xl py-2 outline-none focus:border-cyan-400 font-black"
                     />
                   ) : (
-                    userData?.username || "Guest"
+                    userData?.username || "Guest Node"
                   )}
                 </h2>
-                <p className="text-sm text-muted-foreground mb-6 relative z-10">User ID: {userData?.username}</p>
+                <p className="text-[10px] font-black text-white/30 mb-8 relative z-10 uppercase tracking-widest leading-none">NODE-ID: {userData?.username?.toUpperCase() || "UNASSIGNED"}</p>
                 
                 {isEditing ? (
-                  <div className="flex gap-2">
-                    <button onClick={handleSaveProfile} disabled={saving} className="flex-1 bg-primary text-primary-foreground font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
-                      <Save className="w-4 h-4" />
+                  <div className="flex gap-3 relative z-10">
+                    <Button onClick={handleSaveProfile} disabled={saving} className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-white font-black uppercase tracking-widest h-12 rounded-xl transition-all shadow-lg">
+                      <Save className="w-4 h-4 mr-2" />
                       {saving ? "..." : "Save"}
-                    </button>
-                    <button onClick={() => setIsEditing(false)} className="bg-card border border-border text-foreground hover:bg-secondary font-medium px-3 py-2 rounded-lg transition-colors">
+                    </Button>
+                    <Button variant="outline" onClick={() => setIsEditing(false)} className="bg-white/5 border-white/10 text-white hover:bg-white/10 px-4 h-12 rounded-xl">
                       <X className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
                 ) : (
-                  <button onClick={() => setIsEditing(true)} className="w-full bg-primary/10 text-primary hover:bg-primary/20 font-medium py-2 rounded-lg transition-colors">
+                  <Button onClick={() => setIsEditing(true)} className="w-full bg-white/5 border border-white/10 text-white hover:bg-white/10 font-black uppercase tracking-widest h-12 rounded-xl relative z-10 transition-all group-hover:border-cyan-400/40">
                     Edit Profile
-                  </button>
+                  </Button>
                 )}
               </div>
-
-              {/* Quick Stats Removed */}
             </div>
 
             {/* Right Column: Settings & Details */}
-            <div className="md:col-span-2 space-y-6">
-              <div className="glass-card rounded-2xl p-6 border-border/50">
-                <h3 className="font-semibold text-foreground mb-6 text-lg border-b border-border/50 pb-2">Personal Information</h3>
-                <div className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
+            <div className="md:col-span-2 space-y-8">
+              <div className="neural-card p-10 shadow-2xl border-white/5">
+                <h3 className="font-black text-white mb-8 text-xl uppercase tracking-widest flex items-center gap-3">
+                   <div className="w-2 h-8 bg-cyan-500 rounded-full" />
+                   Neural Information
+                </h3>
+                <div className="space-y-6">
+                  <div className="grid sm:grid-cols-2 gap-6">
                     <div>
-                      <label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1 block">Username</label>
-                      <div className="bg-input/30 border border-border rounded-lg px-4 py-2.5 text-foreground">
+                      <label className="text-[10px] text-cyan-400/60 font-black uppercase tracking-[0.3em] mb-2 block ml-1">Username</label>
+                      <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold tracking-wide">
                         {isEditing ? (
                           <input 
                             type="text" 
@@ -223,8 +270,8 @@ const Account = () => {
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1 block">Age</label>
-                      <div className="bg-input/30 border border-border rounded-lg px-4 py-2.5 text-foreground">
+                      <label className="text-[10px] text-cyan-400/60 font-black uppercase tracking-[0.3em] mb-2 block ml-1">Current Age</label>
+                      <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold tracking-wide">
                         {isEditing ? (
                           <input 
                             type="number" 
@@ -233,15 +280,15 @@ const Account = () => {
                             className="w-full bg-transparent outline-none"
                           />
                         ) : (
-                          userData?.age || "Not specified"
+                          userData?.age || "Unspecified"
                         )}
                       </div>
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1 block">Mobile Number</label>
-                    <div className="flex items-center bg-input/30 border border-border rounded-lg px-4 py-2.5 text-foreground">
-                      <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <label className="text-[10px] text-cyan-400/60 font-black uppercase tracking-[0.3em] mb-2 block ml-1">Bio-Link Mobile</label>
+                    <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold tracking-wide">
+                      <Phone className="w-4 h-4 mr-3 text-cyan-400/60" />
                       {isEditing ? (
                         <input 
                           type="text" 
@@ -250,69 +297,72 @@ const Account = () => {
                           className="w-full bg-transparent outline-none"
                         />
                       ) : (
-                        userData?.mobile || "Not specified"
+                        userData?.mobile || "No link established"
                       )}
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="glass-card rounded-2xl p-6 border-border/50">
-                <h3 className="font-semibold text-foreground mb-6 text-lg border-b border-border/50 pb-2">Security & Preferences</h3>
-                <div className="space-y-2">
-                  <button onClick={handleChangePassword} className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-card/50 transition-colors border border-transparent hover:border-border/50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Key className="w-5 h-5 text-primary" />
+              <div className="neural-card p-10 shadow-2xl border-white/5">
+                <h3 className="font-black text-white mb-8 text-xl uppercase tracking-widest flex items-center gap-3">
+                   <div className="w-2 h-8 bg-purple-500 rounded-full" />
+                   Security Protocols
+                </h3>
+                <div className="space-y-4">
+                  <button onClick={handleChangePassword} className="w-full flex items-center justify-between p-6 rounded-[2rem] bg-white/[0.02] hover:bg-white/5 transition-all border border-white/5 hover:border-cyan-400/20 group">
+                    <div className="flex items-center gap-6">
+                      <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 group-hover:scale-110 transition-transform">
+                        <Key className="w-6 h-6 text-cyan-400" />
                       </div>
                       <div className="text-left">
-                        <div className="font-medium text-foreground">Change Password</div>
-                        <div className="text-xs text-muted-foreground">Update your login credentials</div>
+                        <div className="font-black text-white uppercase tracking-widest text-sm mb-1">Access Credentials</div>
+                        <div className="text-[10px] font-black text-white/30 uppercase tracking-widest">Update your secure login key</div>
                       </div>
                     </div>
-                    <div className="text-muted-foreground">→</div>
+                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/20 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all">→</div>
                   </button>
 
-                  <button onClick={() => setIsPrivacyOpen(true)} className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-card/50 transition-colors border border-transparent hover:border-border/50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-cyan-400/10 flex items-center justify-center">
-                        <Shield className="w-5 h-5 text-cyan-400" />
+                  <button onClick={() => setIsPrivacyOpen(true)} className="w-full flex items-center justify-between p-6 rounded-[2rem] bg-white/[0.02] hover:bg-white/5 transition-all border border-white/5 hover:border-purple-400/20 group">
+                    <div className="flex items-center gap-6">
+                      <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 group-hover:scale-110 transition-transform">
+                        <Shield className="w-6 h-6 text-purple-400" />
                       </div>
                       <div className="text-left">
-                        <div className="font-medium text-foreground">Privacy Settings</div>
-                        <div className="text-xs text-muted-foreground">Manage your data sharing preferences</div>
+                        <div className="font-black text-white uppercase tracking-widest text-sm mb-1">Privacy Firewall</div>
+                        <div className="text-[10px] font-black text-white/30 uppercase tracking-widest">Manage data encryption & visibility</div>
                       </div>
                     </div>
-                    <div className="text-muted-foreground">→</div>
+                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/20 group-hover:text-purple-400 group-hover:translate-x-1 transition-all">→</div>
                   </button>
 
-                  <div className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-card/50 transition-colors border border-transparent hover:border-border/50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-purple-400/10 flex items-center justify-center">
-                        <Bell className="w-5 h-5 text-purple-400" />
+                  <div className="w-full flex items-center justify-between p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 group">
+                    <div className="flex items-center gap-6">
+                      <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                        <Bell className="w-6 h-6 text-cyan-400" />
                       </div>
                       <div className="text-left">
-                        <div className="font-medium text-foreground">Notification Preferences</div>
-                        <div className="text-xs text-muted-foreground">Choose what alerts you receive</div>
+                        <div className="font-black text-white uppercase tracking-widest text-sm mb-1">Neural Alerts</div>
+                        <div className="text-[10px] font-black text-white/30 uppercase tracking-widest">Toggle real-time status notifications</div>
                       </div>
                     </div>
-                    <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
+                    <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} className="data-[state=checked]:bg-cyan-500" />
                   </div>
                 </div>
               </div>
               
               {/* Danger Zone */}
-              <div className="glass-card rounded-2xl p-6 border-destructive/20 bg-destructive/5">
-                <h3 className="font-semibold text-destructive mb-2 text-lg">Danger Zone</h3>
-                <p className="text-sm text-muted-foreground mb-4">Once you delete your account, there is no going back. Please be certain.</p>
-                <div className="flex gap-4">
-                  <button className="bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground font-medium px-4 py-2 rounded-lg transition-colors border border-destructive/20">
-                    Delete Account
-                  </button>
-                  <button onClick={handleLogout} className="bg-card/50 border border-border text-foreground hover:bg-secondary font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                    <LogOut className="w-4 h-4" />
-                    Sign Out
-                  </button>
+              <div className="neural-card p-10 border-red-500/10 bg-red-500/[0.02] shadow-2xl">
+                <h3 className="font-black text-red-500 mb-4 text-xl uppercase tracking-widest">Critical Override</h3>
+                <p className="text-xs font-bold text-white/30 mb-8 uppercase tracking-widest leading-relaxed">Account termination is permanent and cannot be reversed. Proceed with extreme caution.</p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button variant="outline" className="h-14 px-8 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white font-black uppercase tracking-widest rounded-2xl transition-all">
+                    Delete Neural ID
+                  </Button>
+                  <Button onClick={handleLogout} className="h-14 px-8 bg-white/5 border border-white/10 text-white hover:bg-white/10 font-black uppercase tracking-widest rounded-2xl transition-all flex items-center gap-3">
+                    <LogOut className="w-5 h-5" />
+                    Terminate Session
+                  </Button>
                 </div>
               </div>
             </div>
@@ -320,18 +370,18 @@ const Account = () => {
         </div>
       </div>
       <Dialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen}>
-        <DialogContent>
+        <DialogContent className="bg-[#0a0a1f] border border-white/10 text-white rounded-[2rem]">
           <DialogHeader>
-            <DialogTitle>Privacy & Data Security</DialogTitle>
-            <DialogDescription className="pt-4 space-y-3">
+            <DialogTitle className="text-2xl font-black futuristic-header uppercase tracking-widest">Neural Privacy Protocol</DialogTitle>
+            <DialogDescription className="pt-6 space-y-4 text-white/60 font-bold leading-relaxed uppercase text-xs tracking-widest">
               <p>
-                At CalmMate, your privacy is our top priority. All real-time stress detection and facial recognition processes are executed <strong>locally in your browser</strong>.
+                At CalmMate, your privacy is our top priority. All real-time stress detection and facial recognition processes are executed <strong className="text-cyan-400">locally in your neural-net browser</strong>.
               </p>
               <p>
-                We do not store, record, or transmit any video feed or facial data to our servers.
+                We do not store, record, or transmit any video feed or facial data to our central nodes.
               </p>
               <p>
-                Your journal entries and wellness data are saved exclusively in your browser's local storage unless you explicitly choose to sync them.
+                Your journal entries and wellness data are saved exclusively in your browser's local storage unless you explicitly choose to sync them with our encrypted cloud.
               </p>
             </DialogDescription>
           </DialogHeader>
@@ -339,30 +389,31 @@ const Account = () => {
       </Dialog>
 
       <Dialog open={isPasswordResetOpen} onOpenChange={setIsPasswordResetOpen}>
-        <DialogContent className="sm:max-w-md text-center">
+        <DialogContent className="sm:max-w-md text-center bg-[#0a0a1f] border border-white/10 text-white rounded-[2rem]">
           <DialogHeader>
-            <DialogTitle className="flex flex-col items-center gap-4 text-xl">
-              <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mb-2">
-                <CheckCircle2 className="w-8 h-8" />
+            <DialogTitle className="flex flex-col items-center gap-6 text-xl">
+              <div className="w-20 h-20 bg-cyan-500/20 text-cyan-400 rounded-3xl flex items-center justify-center border border-cyan-500/30 shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+                <CheckCircle2 className="w-10 h-10" />
               </div>
-              Email Sent!
+              <span className="font-black futuristic-header uppercase tracking-widest">Transmission Successful</span>
             </DialogTitle>
-            <DialogDescription className="text-base pt-2">
-              We've securely sent a password reset link to <strong>{auth.currentUser?.email}</strong>. 
-              Please check your inbox to create a new password.
+            <DialogDescription className="text-sm font-bold text-white/40 pt-4 uppercase tracking-[0.2em] leading-relaxed">
+              A secure password reset link has been dispatched to <strong className="text-white">{auth.currentUser?.email}</strong>. 
+              Please verify the transmission in your inbox.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-center mt-4">
-            <button 
+          <div className="flex justify-center mt-8">
+            <Button 
               onClick={() => setIsPasswordResetOpen(false)}
-              className="bg-primary text-primary-foreground px-6 py-2 rounded-full font-medium transition-transform hover:scale-105"
+              className="bg-cyan-500 hover:bg-cyan-400 text-white px-10 h-14 rounded-2xl font-black uppercase tracking-widest transition-transform hover:scale-105 shadow-[0_0_30px_rgba(34,211,238,0.3)]"
             >
-              Okay
-            </button>
+              Acknowledged
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
     </div>
+
   );
 };
 

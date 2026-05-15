@@ -14,7 +14,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "(if exist dist rd /s /q dist) & (if exist build-out rd /s /q build-out)",
+    "clean": "(if exist dist rd /s /q dist) & (if exist build-out rd /s /q build-out) & (if exist dist_electron rd /s /q dist_electron)",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:8080 && cross-env NODE_ENV=development electron .\"",
     "electron:build": "npm run clean && npm run build && electron-builder"
   },
@@ -112,11 +112,18 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true
     }
   }
 }
+
+

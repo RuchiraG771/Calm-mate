@@ -252,31 +252,71 @@ const Analysis = () => {
   }, [stopAnalysis]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#0a0a1f] text-white relative overflow-hidden">
       <Navbar />
-      <div className="pt-20 pb-12 px-6">
+      
+      {/* Background Particles */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-cyan-400/10 blur-3xl"
+            style={{
+              width: Math.random() * 400 + 100,
+              height: Math.random() * 400 + 100,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              opacity: [0.1, 0.3, 0.1],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="pt-24 pb-12 px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
           {/* Top controls */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between mb-4"
-          >
-            {isRunning ? (
-              <Button variant="destructive" onClick={stopAnalysis}>
-                <StopCircle className="w-4 h-4 mr-2" /> Stop Analysis
-              </Button>
-            ) : (
-              <Button onClick={startAnalysis} disabled={isLoading || !!modelError} className="glow-primary">
-                <Camera className="w-4 h-4 mr-2" />
-                {isLoading ? "Loading Models..." : modelError ? "Error" : "Start Analysis"}
-              </Button>
-            )}
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Info className="w-4 h-4" />
-              <span className="text-sm">No video data is stored</span>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+            <div>
+              <motion.h1 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-4xl md:text-5xl font-black futuristic-header mb-2"
+              >
+                🔬 Neural Scan
+              </motion.h1>
+              <p className="text-cyan-400/60 font-medium tracking-wide uppercase text-xs">Real-time biometric analysis & stress detection</p>
             </div>
-          </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center gap-4 bg-white/5 backdrop-blur-xl border border-white/10 p-2 rounded-2xl shadow-2xl"
+            >
+              {isRunning ? (
+                <Button variant="destructive" onClick={stopAnalysis} className="h-12 px-8 rounded-xl font-black uppercase tracking-widest shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:scale-105 transition-all">
+                  <StopCircle className="w-4 h-4 mr-2" /> Stop Mission
+                </Button>
+              ) : (
+                <Button onClick={startAnalysis} disabled={isLoading || !!modelError} className="bg-gradient-to-r from-cyan-500 to-cyan-600 h-12 px-8 rounded-xl font-black uppercase tracking-widest shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:scale-105 transition-all">
+                  <Camera className="w-4 h-4 mr-2" />
+                  {isLoading ? "Syncing..." : modelError ? "Error" : "Initiate Scan"}
+                </Button>
+              )}
+              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                <Info className="w-4 h-4 text-cyan-400" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Secure Node</span>
+              </div>
+            </motion.div>
+          </div>
+
 
           {/* Main grid: Video + Right Panel */}
           <div className="grid lg:grid-cols-3 gap-4">
@@ -287,37 +327,41 @@ const Analysis = () => {
               transition={{ delay: 0.1 }}
               className="lg:col-span-2"
             >
-              <div className="relative bg-black rounded-xl overflow-hidden aspect-video border border-primary/20">
-                {/* Corner brackets */}
-                <div className="absolute top-2 left-2 w-8 h-8 border-t-2 border-l-2 border-primary z-10" />
-                <div className="absolute top-2 right-2 w-8 h-8 border-t-2 border-r-2 border-primary z-10" />
-                <div className="absolute bottom-2 left-2 w-8 h-8 border-b-2 border-l-2 border-primary z-10" />
-                <div className="absolute bottom-2 right-2 w-8 h-8 border-b-2 border-r-2 border-primary z-10" />
+              <div className="relative bg-black/40 rounded-3xl overflow-hidden aspect-video border border-white/10 shadow-2xl neural-card">
+                {/* Corner brackets (Futuristic) */}
+                <div className="absolute top-8 left-8 w-16 h-16 border-t-2 border-l-2 border-cyan-500/30 z-10" />
+                <div className="absolute top-8 right-8 w-16 h-16 border-t-2 border-r-2 border-cyan-500/30 z-10" />
+                <div className="absolute bottom-8 left-8 w-16 h-16 border-b-2 border-l-2 border-cyan-500/30 z-10" />
+                <div className="absolute bottom-8 right-8 w-16 h-16 border-b-2 border-r-2 border-cyan-500/30 z-10" />
 
-                <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
-                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+                <video ref={videoRef} className="w-full h-full object-cover opacity-80" muted playsInline />
+                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-20" />
 
                 {/* ANALYZING badge */}
                 {isRunning && (
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/70 border border-primary/30">
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-xs font-medium text-foreground tracking-wider">ANALYZING</span>
+                  <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-6 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+                    <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                    <span className="text-[10px] font-black text-white tracking-[0.4em] uppercase">Neural Stream Active</span>
                   </div>
                 )}
 
                 {/* No face warning */}
                 {isRunning && !faceDetected && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-lg bg-destructive/20 border border-destructive/30">
-                    <span className="text-xs text-destructive">No face detected — position your face in frame</span>
+                  <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 px-6 py-3 rounded-2xl bg-red-500/20 backdrop-blur-xl border border-red-500/30 shadow-2xl">
+                    <span className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-2">
+                       <Activity className="w-4 h-4" /> Position Face in Frame
+                    </span>
                   </div>
                 )}
 
                 {/* Start overlay */}
                 {!isRunning && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/80">
-                    <Camera className="w-16 h-16 text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground mb-4">
-                      {isLoading ? "Loading AI models..." : modelError || "Click Start Analysis to begin"}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a1f]/80 backdrop-blur-sm z-30">
+                    <div className="w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 shadow-2xl">
+                       <Camera className="w-10 h-10 text-cyan-400/40" />
+                    </div>
+                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">
+                      {isLoading ? "Synchronizing AI Modules..." : modelError || "Ready for Neural Extraction"}
                     </p>
                   </div>
                 )}

@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Brain, Lock, User, Phone, Calendar, Mail } from "lucide-react";
+import { Brain, Lock, User, Mail, ShieldCheck } from "lucide-react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 const Signup = () => {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [age, setAge] = useState("");
-  const [mobile, setMobile] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,8 +20,8 @@ const Signup = () => {
     e.preventDefault();
     setErrorMsg("");
 
-    if (!email || !username || !password || !age || !mobile) {
-      setErrorMsg("Please fill in all fields");
+    if (!username || !email || !password) {
+      setErrorMsg("Please fill in all neural data fields");
       return;
     }
 
@@ -30,127 +30,121 @@ const Signup = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // Create user document in Firestore
       await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
         username,
         email,
-        age: parseInt(age),
-        mobile,
-        createdAt: new Date()
+        createdAt: new Date().toISOString(),
+        points: 0,
+        age: "",
+        mobile: ""
       });
 
       setLoading(false);
       navigate("/home");
     } catch (err: any) {
       setLoading(false);
-      setErrorMsg(err.message || "Failed to create account");
+      setErrorMsg(err.message || "Failed to establish identity");
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md glass-card rounded-2xl p-8 border border-primary/20">
+    <div className="min-h-screen bg-[#0a0a1f] text-white flex items-center justify-center px-6 relative overflow-hidden">
+      {/* Background Particles */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-purple-500/10 blur-3xl"
+            style={{ width: 400, height: 400, top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }}
+            animate={{ opacity: [0.1, 0.2, 0.1], scale: [1, 1.3, 1] }}
+            transition={{ duration: 7, repeat: Infinity }}
+          />
+        ))}
+      </div>
 
-        <div className="flex flex-col items-center mb-8">
-          <Brain className="w-14 h-14 text-primary mb-4" />
-          <h1 className="text-3xl font-bold text-foreground">Create Account</h1>
-          <p className="text-muted-foreground mt-2">Join CalmMate today</p>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-lg neural-card p-12 border border-white/10 relative z-10 shadow-2xl"
+      >
+        <div className="flex flex-col items-center mb-10">
+          <div className="w-20 h-20 bg-purple-500/10 rounded-3xl flex items-center justify-center mb-6 border border-purple-500/20 shadow-[0_0_30px_rgba(168,85,247,0.1)]">
+            <ShieldCheck className="w-10 h-10 text-purple-400" />
+          </div>
+          <h1 className="text-4xl font-black futuristic-header tracking-widest uppercase">CalmMate</h1>
+          <p className="text-purple-400/30 text-[10px] font-black mt-3 uppercase tracking-[0.4em]">Identity Synchronization</p>
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-4">
+        <form onSubmit={handleSignup} className="space-y-6">
           {errorMsg && (
-            <div className="bg-destructive/10 border border-destructive text-destructive text-sm p-3 rounded-lg text-center">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-bold p-4 rounded-xl text-center uppercase tracking-widest">
               {errorMsg}
             </div>
           )}
 
-          <div>
-            <label className="text-sm text-muted-foreground">Email</label>
-            <div className="mt-1 flex items-center bg-card border border-border rounded-xl px-4 focus-within:border-primary transition-colors">
-              <Mail className="w-5 h-5 text-muted-foreground" />
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full bg-transparent outline-none px-3 py-3 text-foreground"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-sm text-muted-foreground">Username</label>
-            <div className="mt-1 flex items-center bg-card border border-border rounded-xl px-4 focus-within:border-primary transition-colors">
-              <User className="w-5 h-5 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Choose a username"
-                className="w-full bg-transparent outline-none px-3 py-3 text-foreground"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-2 gap-6">
             <div>
-              <label className="text-sm text-muted-foreground">Age</label>
-              <div className="mt-1 flex items-center bg-card border border-border rounded-xl px-4 focus-within:border-primary transition-colors">
-                <Calendar className="w-5 h-5 text-muted-foreground" />
+              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-400/60 mb-2 block ml-1">Entity Name</label>
+              <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl px-5 focus-within:border-purple-400/50 transition-all shadow-inner">
+                <User className="w-5 h-5 text-white/20" />
                 <input
-                  type="number"
-                  placeholder="e.g. 25"
-                  className="w-full bg-transparent outline-none px-3 py-3 text-foreground"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
+                  type="text"
+                  placeholder="Username"
+                  className="w-full bg-transparent outline-none px-3 py-5 text-white font-bold placeholder:text-white/5"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
             </div>
-
             <div>
-              <label className="text-sm text-muted-foreground">Mobile</label>
-              <div className="mt-1 flex items-center bg-card border border-border rounded-xl px-4 focus-within:border-primary transition-colors">
-                <Phone className="w-5 h-5 text-muted-foreground" />
+              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-400/60 mb-2 block ml-1">Neural Email</label>
+              <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl px-5 focus-within:border-purple-400/50 transition-all shadow-inner">
+                <Mail className="w-5 h-5 text-white/20" />
                 <input
-                  type="tel"
-                  placeholder="Number"
-                  className="w-full bg-transparent outline-none px-3 py-3 text-foreground"
-                  value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
+                  type="email"
+                  placeholder="node@io.net"
+                  className="w-full bg-transparent outline-none px-3 py-5 text-white font-bold placeholder:text-white/5"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
             </div>
           </div>
 
           <div>
-            <label className="text-sm text-muted-foreground">Password</label>
-            <div className="mt-1 flex items-center bg-card border border-border rounded-xl px-4 focus-within:border-primary transition-colors">
-              <Lock className="w-5 h-5 text-muted-foreground" />
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-400/60 mb-2 block ml-1">Access Protocol Key</label>
+            <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl px-5 focus-within:border-purple-400/50 transition-all shadow-inner">
+              <Lock className="w-5 h-5 text-white/20" />
               <input
                 type="password"
-                placeholder="Create a password"
-                className="w-full bg-transparent outline-none px-3 py-3 text-foreground"
+                placeholder="••••••••"
+                className="w-full bg-transparent outline-none px-4 py-5 text-white font-bold placeholder:text-white/5"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="w-full py-4 mt-2 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition disabled:opacity-50"
+            className="w-full h-16 rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-[0_0_40px_rgba(168,85,247,0.3)] text-white font-black uppercase tracking-[0.2em] transition-all duration-500 active:scale-95"
           >
-            {loading ? "Creating Account..." : "Sign Up"}
-          </button>
+            {loading ? "Establishing..." : "Establish Identity"}
+          </Button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link to="/login" className="text-primary hover:underline font-medium">
-            Login
-          </Link>
+        <div className="mt-8 text-center">
+          <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">
+            Identity already exists?{" "}
+            <Link to="/login" className="text-purple-400 hover:text-purple-300 transition-colors">
+              Access Node
+            </Link>
+          </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

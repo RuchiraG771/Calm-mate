@@ -15,62 +15,85 @@ interface SessionTimelineProps {
 
 const SessionTimeline = ({ data, peak, average, current }: SessionTimelineProps) => {
   return (
-    <div className="glass-card rounded-xl p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-semibold text-foreground">Session Timeline</h3>
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-primary" /> Stress
+    <div className="neural-card p-8 shadow-2xl">
+      <div className="flex items-center justify-between mb-8">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400/60">Neural Pulse Timeline</h3>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span className="text-[8px] font-black uppercase tracking-widest text-white/40">Stress Level</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-yellow-500" /> Fear
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+            <span className="text-[8px] font-black uppercase tracking-widest text-white/40">Neural Fear</span>
           </div>
         </div>
       </div>
 
-      <div className="h-48">
+      <div className="h-64 mb-8">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--secondary))" />
+            <CartesianGrid strokeDasharray="10 10" stroke="rgba(255,255,255,0.05)" vertical={false} />
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-              stroke="hsl(var(--secondary))"
+              tick={{ fontSize: 8, fill: "rgba(255,255,255,0.2)", fontWeight: "bold" }}
+              stroke="transparent"
             />
             <YAxis
               domain={[0, 100]}
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-              stroke="hsl(var(--secondary))"
+              tick={{ fontSize: 8, fill: "rgba(255,255,255,0.2)", fontWeight: "bold" }}
+              stroke="transparent"
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "8px",
-                color: "hsl(var(--foreground))",
+                backgroundColor: "rgba(10,10,31,0.9)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: "16px",
+                fontSize: "10px",
+                fontWeight: "bold",
+                color: "#fff",
+                textTransform: "uppercase",
+                letterSpacing: "0.1em"
               }}
+              itemStyle={{ color: "#22d3ee" }}
             />
-            <Line type="monotone" dataKey="stress" stroke="hsl(168, 76%, 42%)" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="fear" stroke="#EAB308" strokeWidth={2} dot={false} />
+            <Line 
+              type="monotone" 
+              dataKey="stress" 
+              stroke="#22d3ee" 
+              strokeWidth={3} 
+              dot={false}
+              animationDuration={1000}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="fear" 
+              stroke="#a855f7" 
+              strokeWidth={3} 
+              dot={false} 
+              strokeDasharray="5 5"
+              animationDuration={1000}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mt-4 text-center">
-        <div>
-          <p className="text-xs text-muted-foreground">Peak</p>
-          <p className="text-lg font-bold text-red-400">{Math.round(peak)}%</p>
+      <div className="grid grid-cols-3 gap-8">
+        <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/5">
+          <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Peak Amplitude</p>
+          <p className="text-2xl font-black text-red-500 tracking-tighter">{Math.round(peak)}%</p>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Average</p>
-          <p className="text-lg font-bold text-yellow-400">{Math.round(average)}%</p>
+        <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/5">
+          <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Mean Frequency</p>
+          <p className="text-2xl font-black text-purple-400 tracking-tighter">{Math.round(average)}%</p>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Current</p>
-          <p className="text-lg font-bold text-primary">{Math.round(current)}%</p>
+        <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/5">
+          <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Live Sync</p>
+          <p className="text-2xl font-black text-cyan-400 tracking-tighter">{Math.round(current)}%</p>
         </div>
       </div>
     </div>
+
   );
 };
 

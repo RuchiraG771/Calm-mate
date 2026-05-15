@@ -167,128 +167,92 @@ const Questionnaire = () => {
   const progress = ((currentIdx + 1) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-[#0a0a1f] text-white relative overflow-hidden flex flex-col">
       <Navbar />
-      <div className="flex-1 pt-24 pb-12 px-6 flex items-center justify-center">
-        <div className="w-full max-w-2xl mx-auto">
-          {!result ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass-card p-8 rounded-2xl border border-border flex flex-col min-h-[400px]"
-            >
-              {/* Progress Bar */}
-              <div className="mb-8">
-                <div className="flex justify-between text-sm font-medium text-muted-foreground mb-2">
-                  <span>Question {currentIdx + 1} of {questions.length}</span>
-                  <span>{Math.round(progress)}%</span>
-                </div>
-                <div className="w-full bg-secondary/50 rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
+      
+      {/* Background Particles */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-purple-500/10 blur-3xl"
+            style={{
+              width: Math.random() * 400 + 100,
+              height: Math.random() * 400 + 100,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              opacity: [0.1, 0.2, 0.1],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          />
+        ))}
+      </div>
 
-              {/* Question */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentIdx}
-                  initial={{ x: 20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: -20, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex-1"
-                >
-                  <h2 className="text-2xl font-semibold text-foreground mb-6">
-                    {currentQ.text}
-                  </h2>
-                  <div className="grid grid-cols-1 gap-3">
-                    {currentQ.options.map((opt) => (
-                      <button
-                        key={opt.text}
-                        onClick={() => handleOptionClick(currentQ.id, opt.score)}
-                        className={`p-4 rounded-xl border text-left transition-all flex items-center justify-between group ${answers[currentQ.id] === opt.score
-                            ? "bg-primary/20 border-primary text-primary"
-                            : "bg-card border-border hover:border-primary/50 text-muted-foreground hover:text-foreground"
-                          }`}
-                      >
-                        <span className="font-medium">{opt.text}</span>
-                        {answers[currentQ.id] === opt.score && (
-                          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                            <CheckCircle className="w-5 h-5 text-primary" />
-                          </motion.div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Navigation */}
-              <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-                <Button
-                  variant="ghost"
-                  onClick={handlePrev}
-                  disabled={currentIdx === 0}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Back
-                </Button>
-
-                <Button
-                  onClick={handleNext}
-                  disabled={!answers[currentQ.id]}
-                  className="glow-primary min-w-[140px]"
-                >
-                  {currentIdx === questions.length - 1 ? "See Results" : "Next Question"}
-                  {currentIdx === questions.length - 1 ? <Activity className="w-4 h-4 ml-2" /> : <ArrowRight className="w-4 h-4 ml-2" />}
-                </Button>
-              </div>
-            </motion.div>
-          ) : (
+      <div className="flex-1 pt-24 pb-12 px-6 flex items-center justify-center relative z-10">
+        <div className="w-full max-w-3xl mx-auto">
+          {result ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="glass-card p-8 rounded-2xl border border-primary/20 space-y-6"
+              className="neural-card p-10 shadow-2xl space-y-10"
             >
-              <div className="flex items-center gap-3 mb-6">
-                <Brain className="w-8 h-8 text-primary" />
-                <h2 className="text-2xl font-bold">Analysis Complete</h2>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-white/5 pb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 flex items-center justify-center text-cyan-400 border border-cyan-500/30">
+                    <Brain className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-white uppercase tracking-widest">Neural Report</h2>
+                    <p className="text-[10px] font-black text-cyan-400/60 uppercase tracking-[0.4em]">Assessment Complete</p>
+                  </div>
+                </div>
+                <div className="px-6 py-2 bg-white/5 rounded-full border border-white/10 text-[10px] font-black text-white/40 uppercase tracking-widest">
+                  Ref ID: CALM-{Math.floor(Math.random() * 9000 + 1000)}
+                </div>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="col-span-1 bg-card rounded-xl p-6 border border-border flex flex-col items-center justify-center text-center">
-                  <Activity className="w-10 h-10 text-cyan-400 mb-3" />
-                  <div className="text-sm text-muted-foreground mb-1">Stress Level</div>
-                  <div className={`text-3xl font-bold ${result.stressLevel === 'HIGH' ? 'text-destructive' : 'text-cyan-400'}`}>
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="col-span-1 p-8 rounded-[2rem] bg-white/5 border border-white/10 flex flex-col items-center justify-center text-center shadow-xl relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Activity className="w-12 h-12 text-cyan-400 mb-6 group-hover:scale-110 transition-transform" />
+                  <div className="text-[10px] text-cyan-400/60 font-black uppercase tracking-[0.3em] mb-2">Stress Level</div>
+                  <div className={`text-4xl font-black tracking-tighter ${result.stressLevel === 'HIGH' ? 'text-red-500' : 'text-white'}`}>
                     {result.stressLevel}
                   </div>
-                  <div className="text-xs text-muted-foreground mt-2">Score: {result.score} / 100</div>
+                  <div className="text-[10px] font-black text-white/20 mt-4 uppercase tracking-widest">Neural Score: {result.score}</div>
                 </div>
 
-                <div className="col-span-2 space-y-4">
-                  <div className="bg-card rounded-xl p-5 border border-border flex justify-between items-center">
+                <div className="col-span-2 space-y-6">
+                  <div className="p-8 rounded-[2rem] bg-white/5 border border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-xl">
                     <div>
-                      <div className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-yellow-400"></span> Current Mood
+                      <div className="text-[10px] text-yellow-400/60 font-black uppercase tracking-[0.3em] mb-2 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-yellow-400"></span> Detected Mood
                       </div>
-                      <div className="font-medium text-foreground text-lg">
+                      <div className="text-2xl font-black text-white tracking-tight">
                         {result.mood}
                       </div>
                     </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground mb-1 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-primary"></span> Reason
+                    <div className="h-10 w-[1px] bg-white/10 hidden sm:block" />
+                    <div className="sm:text-right">
+                      <div className="text-[10px] text-purple-400/60 font-black uppercase tracking-[0.3em] mb-2 flex items-center sm:justify-end gap-2">
+                        <span className="w-2 h-2 rounded-full bg-purple-500"></span> Principal Bias
                       </div>
-                      <div className="font-medium text-foreground capitalize">
+                      <div className="text-xl font-black text-white tracking-tight capitalize">
                         {result.reason}
                       </div>
                     </div>
                   </div>
 
-                  <RealTimeRecommendations stressScore={result.score} />
+                  <div className="neural-card p-6 border-white/5 bg-white/[0.02]">
+                    <RealTimeRecommendations stressScore={result.score} />
+                  </div>
                 </div>
               </div>
 
@@ -296,25 +260,103 @@ const Questionnaire = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-6 p-5 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-4"
+                  className="p-8 rounded-[2rem] bg-red-500/10 border border-red-500/20 flex items-start gap-6"
                 >
-                  <div className="bg-destructive/20 p-2 rounded-full mt-1 flex-shrink-0">
-                    <Zap className="w-5 h-5 text-destructive" />
+                  <div className="bg-red-500/20 p-4 rounded-2xl flex-shrink-0 border border-red-500/30">
+                    <Zap className="w-6 h-6 text-red-500" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-destructive flex items-center gap-2">
-                      ⚡ Instant AI Insight
+                    <h4 className="font-black text-red-500 uppercase tracking-widest text-sm flex items-center gap-2">
+                      ⚡ AI Critical Insight
                     </h4>
-                    <p className="text-destructive/90 mt-1">
-                      Your mind is showing signs of cognitive overload. It is highly recommended to take a break immediately.
+                    <p className="text-red-400/80 mt-2 font-bold leading-relaxed">
+                      Your mind is showing signs of cognitive overload. It is highly recommended to initiate a recovery protocol immediately.
                     </p>
                   </div>
                 </motion.div>
               )}
 
-              <div className="pt-6 flex flex-wrap gap-4 justify-center border-t border-border mt-8">
-                <Button onClick={resetQuiz} variant="outline">
-                  Take Again
+              <div className="pt-10 flex flex-wrap gap-4 justify-center border-t border-white/5">
+                <Button 
+                  onClick={resetQuiz} 
+                  variant="outline" 
+                  className="px-10 h-14 border-white/10 hover:bg-white/5 text-white/40 hover:text-white font-black uppercase tracking-widest rounded-2xl transition-all"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" /> Recalibrate
+                </Button>
+                <Button 
+                  asChild
+                  className="px-10 h-14 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] text-white font-black uppercase tracking-widest rounded-2xl transition-all"
+                >
+                  <Link to="/wellness">
+                    Open Wellness Hub <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="neural-card p-10 shadow-2xl flex flex-col min-h-[450px]"
+            >
+              <div className="flex justify-between items-center mb-10">
+                <div className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.4em]">Question {currentIdx + 1} / {questions.length}</div>
+                <div className="w-32 h-1 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-cyan-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentQ.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col"
+                >
+                  <h3 className="text-2xl font-black text-white mb-10 leading-tight uppercase tracking-tight">
+                    {currentQ.text}
+                  </h3>
+
+                  <div className="grid gap-4">
+                    {currentQ.options.map((opt) => (
+                      <button
+                        key={opt.text}
+                        onClick={() => handleOptionClick(currentQ.id, opt.score)}
+                        className={`p-6 rounded-2xl text-left transition-all border font-bold uppercase tracking-widest text-xs flex justify-between items-center group ${
+                          answers[currentQ.id] === opt.score
+                            ? "bg-cyan-500 border-cyan-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                            : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:border-white/20 hover:text-white"
+                        }`}
+                      >
+                        {opt.text}
+                        {answers[currentQ.id] === opt.score && <CheckCircle className="w-4 h-4" />}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+
+              <div className="flex justify-between mt-10 pt-8 border-t border-white/5">
+                <Button
+                  variant="ghost"
+                  onClick={handlePrev}
+                  disabled={currentIdx === 0}
+                  className="text-white/40 hover:text-white font-black uppercase tracking-widest text-[10px]"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                </Button>
+                <Button
+                  onClick={handleNext}
+                  disabled={!answers[currentQ.id]}
+                  className="bg-cyan-500 hover:bg-cyan-400 text-white font-black uppercase tracking-widest text-[10px] px-10 rounded-xl h-12 shadow-lg"
+                >
+                  {currentIdx === questions.length - 1 ? "Extract Report" : "Continue"} <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </motion.div>

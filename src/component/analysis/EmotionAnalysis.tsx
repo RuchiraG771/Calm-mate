@@ -30,35 +30,41 @@ const EmotionAnalysis = ({ emotions, dominant }: EmotionAnalysisProps) => {
   const sorted = Object.entries(emotions).sort(([, a], [, b]) => b - a);
 
   return (
-    <div className="glass-card rounded-xl p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-semibold text-foreground">Emotion Analysis</h3>
-        <div className="flex items-center gap-2">
-          <DominantIcon className="w-5 h-5 text-yellow-400" />
-          <span className="text-sm font-medium text-foreground capitalize">{dominant}</span>
+    <div className="neural-card p-8 shadow-2xl">
+      <div className="flex items-center justify-between mb-8">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400/60">Neural Emotion Mapping</h3>
+        <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/10">
+          <DominantIcon className="w-5 h-5 text-cyan-400" />
+          <span className="text-[10px] font-black text-white uppercase tracking-widest">{dominant}</span>
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {sorted.map(([emotion, value]) => {
           const Icon = EMOTION_ICONS[emotion] || Meh;
-          const barColor = EMOTION_COLORS[emotion] || "bg-gray-500";
+          const barColor = EMOTION_COLORS[emotion] || "bg-white/10";
           return (
-            <div key={emotion} className="flex items-center gap-3">
-              <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-xs text-muted-foreground w-16 capitalize">{emotion}</span>
-              <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${barColor}`}
-                  style={{ width: `${value}%` }}
+            <div key={emotion} className="group">
+              <div className="flex items-center justify-between mb-2 px-1">
+                <div className="flex items-center gap-3">
+                  <Icon className="w-3.5 h-3.5 text-white/20 group-hover:text-cyan-400 transition-colors" />
+                  <span className="text-[10px] font-black text-white/40 uppercase tracking-widest group-hover:text-white transition-colors">{emotion}</span>
+                </div>
+                <span className="text-[10px] font-black text-cyan-400/60 tracking-widest">{value}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                <motion.div
+                  className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${value}%` }}
                 />
               </div>
-              <span className="text-xs text-muted-foreground w-8 text-right">{value}%</span>
             </div>
           );
         })}
       </div>
     </div>
+
   );
 };
 

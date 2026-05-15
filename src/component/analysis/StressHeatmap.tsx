@@ -26,34 +26,34 @@ const StressHeatmap = ({ forehead, eyes, mouth, jaw }: StressHeatmapProps) => {
   ];
 
   return (
-    <div className="glass-card rounded-xl p-5">
-      <h3 className="text-base font-semibold text-foreground mb-4">Stress Heatmap</h3>
+    <div className="neural-card p-8 shadow-2xl">
+      <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400/60 mb-8">Bio-Thermal Heatmap</h3>
 
-      <div className="flex gap-4">
+      <div className="flex gap-10">
         {/* Face diagram */}
-        <div className="flex-shrink-0 w-24 h-32 relative flex flex-col items-center justify-center">
+        <div className="flex-shrink-0 w-32 h-40 relative flex flex-col items-center justify-center bg-white/[0.02] border border-white/5 rounded-3xl p-4 shadow-inner">
           {/* Forehead */}
-          <div className={`w-16 h-6 rounded-full ${getColor(forehead).dot} opacity-70`} />
+          <div className={`w-20 h-8 rounded-full ${getColor(forehead).dot} opacity-50 blur-sm shadow-[0_0_20px_rgba(255,255,255,0.2)] mb-2`} />
           {/* Eyes */}
-          <div className="flex gap-2 my-1">
-            <div className={`w-6 h-4 rounded-full ${getColor(eyes).dot} opacity-70`} />
-            <div className={`w-6 h-4 rounded-full ${getColor(eyes).dot} opacity-70`} />
+          <div className="flex gap-4 mb-4">
+            <div className={`w-8 h-6 rounded-full ${getColor(eyes).dot} opacity-50 blur-sm shadow-[0_0_20px_rgba(255,255,255,0.2)]`} />
+            <div className={`w-8 h-6 rounded-full ${getColor(eyes).dot} opacity-50 blur-sm shadow-[0_0_20px_rgba(255,255,255,0.2)]`} />
           </div>
-          {/* Mouth */}
-          <div className={`w-10 h-5 rounded-full ${getColor(mouth).dot} opacity-70 mt-1`} />
+          {/* Mouth/Jaw */}
+          <div className={`w-14 h-8 rounded-full ${getColor(mouth).dot} opacity-50 blur-sm shadow-[0_0_20px_rgba(255,255,255,0.2)]`} />
         </div>
 
         {/* Bars */}
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-5">
           {regions.map((r) => (
-            <div key={r.label}>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-muted-foreground">{r.label}</span>
-                <span className={getTextColor(r.value)}>{Math.round(r.value)}%</span>
+            <div key={r.label} className="group">
+              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2 px-1">
+                <span className="text-white/30 group-hover:text-white transition-colors">{r.label}</span>
+                <span className={`${getTextColor(r.value)}`}>{Math.round(r.value)}%</span>
               </div>
-              <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
                 <div
-                  className={`h-full rounded-full transition-all duration-300 ${getColor(r.value).bar}`}
+                  className={`h-full rounded-full transition-all duration-1000 ${getColor(r.value).bar}`}
                   style={{ width: `${r.value}%` }}
                 />
               </div>
@@ -63,12 +63,22 @@ const StressHeatmap = ({ forehead, eyes, mouth, jaw }: StressHeatmapProps) => {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500" /> Low</div>
-        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-500" /> Medium</div>
-        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500" /> High</div>
+      <div className="flex items-center justify-center gap-8 mt-10 p-4 bg-white/[0.02] rounded-2xl border border-white/5">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]" /> 
+          <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Nominal</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_5px_rgba(234,179,8,0.5)]" />
+          <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Elevated</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]" />
+          <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Critical</span>
+        </div>
       </div>
     </div>
+
   );
 };
 
