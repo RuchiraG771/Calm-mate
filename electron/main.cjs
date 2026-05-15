@@ -7,6 +7,11 @@ function createWindow() {
     width: 1200,
     height: 800,
     backgroundColor: '#0a0a1f',
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#0a0a1f',
+      symbolColor: '#ffffff'
+    },
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
@@ -14,6 +19,7 @@ function createWindow() {
     },
     title: "CalmMate Wellness",
     icon: path.join(__dirname, '../public/favicon.ico'),
+    autoHideMenuBar: true,
   });
 
   if (isDev) {
