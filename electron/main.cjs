@@ -1,5 +1,9 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
+<<<<<<< HEAD
+=======
+const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+>>>>>>> origin/main
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -21,8 +25,17 @@ function createWindow() {
     autoHideMenuBar: true,
   });
 
+<<<<<<< HEAD
   console.log('Starting CalmMate in FORCE-DEV mode');
   mainWindow.loadURL('http://localhost:8080');
+=======
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:8080');
+    mainWindow.webContents.openDevTools();
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+  }
+>>>>>>> origin/main
 }
 
 app.whenReady().then(() => {
