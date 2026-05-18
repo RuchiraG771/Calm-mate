@@ -8,14 +8,9 @@ import Breathing from "./pages/Breathing";
 import NotFound from "./pages/NotFound";
 import Account from "./pages/Account";
 import TextAnalysis from "./component/TextAnalysis";
-<<<<<<< HEAD
 import Questionnaire from "./pages/Questionnaire";
 import Wellness from "./component/Wellness";
 import History from "./pages/History";
-=======
-import Wellness from "./component/Wellness";
-import Questionnaire from "./pages/Questionnaire";
->>>>>>> origin/main
 
 function App() {
   return (
@@ -39,11 +34,7 @@ function App() {
         <Route path="/questionnaire" element={<Questionnaire />} />
 
         <Route path="/wellness" element={<Wellness />} />
-<<<<<<< HEAD
-
         <Route path="/history" element={<History />} />
-=======
->>>>>>> origin/main
       </Routes>
     </HashRouter>
   );
