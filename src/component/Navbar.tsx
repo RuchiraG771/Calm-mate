@@ -46,10 +46,28 @@ const Navbar = () => {
     window.addEventListener("storage", handleStorageChange);
     // Custom event for same-tab updates
     window.addEventListener("pointsUpdated", handleStorageChange);
+
+    // Notification setup
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
+    const interval = setInterval(() => {
+      const lastDateStr = localStorage.getItem("calmmate_last_completion_date");
+      const isDoneToday = lastDateStr && new Date(lastDateStr).toDateString() === new Date().toDateString();
+      if (!isDoneToday) {
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("CalmMate Reminder", {
+            body: "It's been a while! Take a moment to complete a wellness session and earn points.",
+          });
+        }
+      }
+    }, 60 * 60 * 1000); // Every hour
     
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("pointsUpdated", handleStorageChange);
+      clearInterval(interval);
     };
   }, []);
 
@@ -99,7 +117,7 @@ const Navbar = () => {
                 location.pathname === "/analysis" ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              Analysis
+              Live Mood Scan
             </Link>
             
             <Link

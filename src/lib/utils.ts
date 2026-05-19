@@ -5,6 +5,40 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function getMetricsFromEmotions(emotions: Record<string, number>) {
+  const angry = emotions.angry || 0;
+  const disgusted = emotions.disgusted || 0;
+  const fearful = emotions.fearful || 0;
+  const sad = emotions.sad || 0;
+  const surprised = emotions.surprised || 0;
+  const happy = emotions.happy || 0;
+  const neutral = emotions.neutral || 0;
+
+  return {
+    Stress: Math.min(100, Math.round((fearful * 0.5) + (angry * 0.4) + (disgusted * 0.3))),
+    Anxiety: Math.min(100, Math.round((fearful * 0.6) + (sad * 0.3) + (surprised * 0.2))),
+    Happiness: happy,
+    Calmness: neutral,
+    Energy: Math.min(100, Math.round((happy * 0.6) + (surprised * 0.4) + ((100 - sad) * 0.2)))
+  };
+}
+
+export function generateImprovementSummary(before: any, after: any) {
+  if (!before || !after) return "";
+  const stressDiff = before.Stress - after.Stress;
+  const calmDiff = after.Calmness - before.Calmness;
+  
+  if (stressDiff > 20 && calmDiff > 20) {
+    return "Exceptional neural realignment. Your stress levels have plummeted and calmness is at optimal levels.";
+  } else if (stressDiff > 0 || calmDiff > 0) {
+    return "Positive emotional shift detected. The wellness activity successfully reduced neurological tension.";
+  } else if (stressDiff === 0 && calmDiff === 0) {
+    return "Emotional baseline maintained. Consistent practice is required for deeper neural shifts.";
+  } else {
+    return "Slight elevation in cognitive load detected. Consider trying a different sequence to find your optimal balance.";
+  }
+}
+
 export function getAnalysisDetailsFromScore(score: number) {
   if (score <= 20) {
     return {

@@ -2,9 +2,30 @@ import { useState } from "react";
 import Navbar from "./Navbar";
 import RealTimeRecommendations from "./analysis/RealTimeRecommendations";
 import { getAnalysisDetailsFromScore } from "@/lib/utils";
+import { auth } from "@/lib/firebase";
+import { saveHistory } from "@/lib/historyService";
 
 async function analyzeTextWithAI(text: string) {
-  const score = Math.floor(Math.random() * 101); // 0 to 100
+  const lower = text.toLowerCase();
+  let score = 40; // baseline
+
+  // Negative patterns
+  if (lower.match(/\b(stress|tired|overwhelmed|overthinking|exhausted|burnout|can't handle|crying)\b/g)) score += 30;
+  if (lower.match(/\b(anxious|worried|nervous|scared|panic|fear|terrified)\b/g)) score += 25;
+  if (lower.match(/\b(sad|depressed|down|unhappy|lonely|empty|hopeless)\b/g)) score += 20;
+  
+  // Positive patterns
+  if (lower.match(/\b(happy|good|relaxed|great|amazing|calm|peaceful|joy|excited|wonderful)\b/g)) score -= 25;
+  if (lower.match(/\b(better|improving|okay|fine|alright)\b/g)) score -= 10;
+  
+  // Intensity multipliers (very, extremely, so)
+  if (lower.match(/\b(very|extremely|so|too much)\b/g)) {
+    if (score > 50) score += 10;
+    else if (score < 50) score -= 10;
+  }
+  
+  score = Math.max(0, Math.min(100, score));
+
   return {
     stress_score: score,
   };
@@ -23,17 +44,24 @@ function TextAnalysis() {
     try {
       const aiResult = await analyzeTextWithAI(text);
       setResult(aiResult);
-    } catch {
-      // Keyword-based fallback
-      let score = 40;
-      const lower = text.toLowerCase();
-      if (lower.includes("stress") || lower.includes("tired") || lower.includes("overthinking")) score += 30;
-      if (lower.includes("happy") || lower.includes("good") || lower.includes("relaxed")) score -= 20;
-      if (lower.includes("anxious") || lower.includes("worried")) score += 25;
-      score = Math.max(0, Math.min(100, score));
-      setResult({ stress_score: score });
+      
+      // Save history
+      if (auth.currentUser) {
+        const details = getAnalysisDetailsFromScore(aiResult.stress_score);
+        await saveHistory({
+          userId: auth.currentUser.uid,
+          type: "quiz",
+          score: aiResult.stress_score,
+          stressLevel: details.level,
+          mood: "Text Analysis",
+        });
+      }
+    } catch (err) {
+      console.error("Text analysis failed", err);
+    } finally {
+      setStatusMsg("");
+      setLoading(false);
     }
-    setStatusMsg(""); setLoading(false);
   };
 
   return (

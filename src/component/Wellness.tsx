@@ -5,6 +5,8 @@ import { getActivitySequence, updateActivitySequenceIndex, clearActivitySequence
 import { CheckCircle, ArrowRight, Home, Sparkles, ArrowLeft, Play, Pause, Volume2, Heart, SkipForward, SkipBack } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { auth } from "@/lib/firebase";
+import { saveHistory } from "@/lib/historyService";
 
 function Wellness({ defaultTab: propDefaultTab }: any) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -102,11 +104,18 @@ function Wellness({ defaultTab: propDefaultTab }: any) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setIsCompleted(true);
+      
+      if (sequence) {
+        sessionStorage.setItem("calmmate_last_activity", sequence.suggestions.join(", "));
+      }
       clearActivitySequence();
       
       // Award points for completing the session
-      addUserPoints(10);
+      addUserPoints(50);
       window.dispatchEvent(new Event("pointsUpdated"));
+      
+      // Initiate post-activity scan
+      navigate("/analysis?mode=post");
     }
   };
 

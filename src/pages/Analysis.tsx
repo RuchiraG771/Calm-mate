@@ -1,8 +1,24 @@
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import * as faceapi from "face-api.js";
-import { StopCircle, Camera, Info } from "lucide-react";
+import { StopCircle, Camera, Info, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  Legend
+} from "recharts";
 import Navbar from "@/components/Navbar";
 import AnxietyGauge from "@/components/analysis/AnxietyGauge";
 import StressHeatmap from "@/components/analysis/StressHeatmap";
@@ -10,6 +26,9 @@ import SessionTimeline from "@/components/analysis/SessionTimeline";
 import EmotionAnalysis from "@/components/analysis/EmotionAnalysis";
 import BehavioralIndicators from "@/components/analysis/BehavioralIndicators";
 import RealTimeRecommendations from "@/components/analysis/RealTimeRecommendations";
+import { auth } from "@/lib/firebase";
+import { saveHistory } from "@/lib/historyService";
+import { getAnalysisDetailsFromScore, getMetricsFromEmotions, generateImprovementSummary } from "@/lib/utils";
 
 const getStressFromExpressions = (expressions: faceapi.FaceExpressions) => {
   const { angry, disgusted, fearful, sad, surprised, happy, neutral } = expressions;
@@ -35,6 +54,10 @@ const getEAR = (eye: faceapi.Point[]) => {
 const EAR_THRESHOLD = 0.21;
 
 const Analysis = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const mode = searchParams.get("mode");
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -45,6 +68,7 @@ const Analysis = () => {
   const [dominantEmotion, setDominantEmotion] = useState("neutral");
   const [emotions, setEmotions] = useState<Record<string, number>>({});
   const [faceDetected, setFaceDetected] = useState(false);
+  const [comparisonData, setComparisonData] = useState<any>(null);
   const [blinkCount, setBlinkCount] = useState(0);
   const [headMovement, setHeadMovement] = useState(0);
   const [stressRegions, setStressRegions] = useState({ forehead: 0, eyes: 0, mouth: 0, jaw: 0 });
@@ -58,8 +82,32 @@ const Analysis = () => {
   const timerRef = useRef<number>();
   const lastFacePosRef = useRef<{ x: number; y: number } | null>(null);
   const stressHistoryRef = useRef<number[]>([]);
+  const latestDataRef = useRef({ 
+    avgStress: 0, 
+    peakStress: 0, 
+    dominantEmotion: "neutral", 
+    sessionTime: 0,
+    stressScore: 0,
+    emotions: {} as Record<string, number>,
+    timelineData: [] as { time: string; stress: number; fear: number }[]
+  });
 
   useEffect(() => {
+    const saved = sessionStorage.getItem("calmmate_scan_state");
+    if (saved && mode !== "post") {
+      try {
+        const parsed = JSON.parse(saved);
+        setStressScore(parsed.stressScore);
+        setPeakStress(parsed.peakStress);
+        setAvgStress(parsed.avgStress);
+        setTimelineData(parsed.timelineData);
+        setEmotions(parsed.emotions);
+        setDominantEmotion(parsed.dominantEmotion);
+        setSessionTime(parsed.sessionTime);
+      } catch (e) {
+        console.error("Failed to parse saved scan state");
+      }
+    }
     const loadModels = async () => {
       try {
         const MODEL_URL = "https://justadudewhohacks.github.io/face-api.js/models";
@@ -94,7 +142,19 @@ const Analysis = () => {
         stressHistoryRef.current = [];
         lastFacePosRef.current = null;
 
-        timerRef.current = window.setInterval(() => setSessionTime((t) => t + 1), 1000);
+        timerRef.current = window.setInterval(() => {
+          setSessionTime((t) => {
+            const newTime = t + 1;
+            latestDataRef.current.sessionTime = newTime;
+            
+            // Auto stop after 10 seconds of scanning
+            if (newTime >= 10) {
+               // Schedule stop on next tick to avoid state conflicts
+               setTimeout(() => stopAnalysis(), 10);
+            }
+            return newTime;
+          });
+        }, 1000);
 
         intervalRef.current = window.setInterval(async () => {
           if (!videoRef.current || !canvasRef.current) return;
@@ -200,14 +260,13 @@ const Analysis = () => {
               });
             }
 
-            // Update scores
+            const emotionObj = Object.fromEntries(
+              Object.entries(detections.expressions).map(([k, v]) => [k, Math.round((v as number) * 100)])
+            );
+            
             setStressScore(stress);
             setDominantEmotion(getDominantEmotion(detections.expressions));
-            setEmotions(
-              Object.fromEntries(
-                Object.entries(detections.expressions).map(([k, v]) => [k, Math.round((v as number) * 100)])
-              )
-            );
+            setEmotions(emotionObj);
 
             // Timeline
             stressHistoryRef.current.push(stress);
@@ -215,7 +274,7 @@ const Analysis = () => {
             const avg = stressHistoryRef.current.reduce((a, b) => a + b, 0) / stressHistoryRef.current.length;
             setPeakStress(peak);
             setAvgStress(avg);
-
+            
             setTimelineData((prev) => {
               const sec = prev.length * 0.2;
               const newEntry = {
@@ -225,7 +284,19 @@ const Analysis = () => {
               };
               // Keep last 100 entries
               const updated = [...prev, newEntry];
-              return updated.length > 100 ? updated.slice(-100) : updated;
+              const finalizedTimeline = updated.length > 100 ? updated.slice(-100) : updated;
+              
+              latestDataRef.current = {
+                avgStress: avg,
+                peakStress: peak,
+                dominantEmotion: getDominantEmotion(detections.expressions),
+                sessionTime: latestDataRef.current.sessionTime,
+                stressScore: stress,
+                emotions: emotionObj,
+                timelineData: finalizedTimeline
+              };
+              
+              return finalizedTimeline;
             });
           } else {
             setFaceDetected(false);
@@ -237,19 +308,130 @@ const Analysis = () => {
     }
   }, []);
 
-  const stopAnalysis = useCallback(() => {
-    setIsRunning(false);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (videoRef.current?.srcObject) {
-      (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
-      videoRef.current.srcObject = null;
-    }
+  const stopAnalysis = useCallback(async () => {
+    setIsRunning((currentlyRunning) => {
+      if (!currentlyRunning) return false;
+      
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
+      
+      const { avgStress: finalAvg, peakStress: finalPeak, dominantEmotion: finalEmotion, sessionTime: finalTime, stressScore: finalScore, emotions: finalEmotions, timelineData: finalTimeline } = latestDataRef.current;
+
+      // Save to sessionStorage to prevent tab reset
+      sessionStorage.setItem("calmmate_scan_state", JSON.stringify({
+        stressScore: Math.round(finalAvg),
+        peakStress: finalPeak,
+        avgStress: finalAvg,
+        timelineData: finalTimeline,
+        emotions: finalEmotions,
+        dominantEmotion: finalEmotion,
+        sessionTime: finalTime
+      }));
+
+      // Save history
+      if (auth.currentUser && finalTime > 0) {
+        const details = getAnalysisDetailsFromScore(Math.round(finalAvg));
+        
+        if (mode === "post") {
+          const preScanStateStr = sessionStorage.getItem("calmmate_scan_state");
+          let beforeMetrics = {};
+          if (preScanStateStr) {
+             const preScanState = JSON.parse(preScanStateStr);
+             beforeMetrics = getMetricsFromEmotions(preScanState.emotions);
+          }
+          const afterMetrics = getMetricsFromEmotions(finalEmotions);
+          const scoreImprovement = (beforeMetrics as any).Stress ? ((beforeMetrics as any).Stress - afterMetrics.Stress) : 0;
+          const improvementScore = Math.max(0, Math.min(100, 50 + scoreImprovement));
+
+          saveHistory({
+            userId: auth.currentUser.uid,
+            type: "combined",
+            score: Math.round(finalAvg),
+            stressLevel: details.level,
+            mood: finalEmotion,
+            avgStress: Math.round(finalAvg),
+            peakStress: Math.round(finalPeak),
+            dominantEmotion: finalEmotion,
+            duration: finalTime,
+            beforeMetrics,
+            afterMetrics,
+            improvementScore
+          }).catch(err => console.error("Failed to save combined history", err));
+
+          sessionStorage.setItem("calmmate_comparison_state", JSON.stringify({
+            beforeMetrics,
+            afterMetrics,
+            improvementScore
+          }));
+          
+          setComparisonData({
+            beforeMetrics,
+            afterMetrics,
+            improvementScore,
+            summary: generateImprovementSummary(beforeMetrics, afterMetrics)
+          });
+        } else {
+          saveHistory({
+            userId: auth.currentUser.uid,
+            type: "facial",
+            score: Math.round(finalAvg),
+            stressLevel: details.level,
+            mood: finalEmotion,
+            avgStress: Math.round(finalAvg),
+            peakStress: Math.round(finalPeak),
+            dominantEmotion: finalEmotion,
+            duration: finalTime
+          }).catch(err => console.error("Failed to save history", err));
+        }
+      }
+
+      if (videoRef.current?.srcObject) {
+        (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
+        videoRef.current.srcObject = null;
+      }
+      return false;
+    });
   }, []);
 
   useEffect(() => {
-    return () => { stopAnalysis(); };
-  }, [stopAnalysis]);
+    return () => { 
+      // On unmount, if running and has some data, save partial history
+      setIsRunning((running) => {
+        if (running && auth.currentUser) {
+           const { avgStress: finalAvg, peakStress: finalPeak, dominantEmotion: finalEmotion, sessionTime: finalTime, emotions: finalEmotions, timelineData: finalTimeline } = latestDataRef.current;
+           if (finalTime > 2) { // only save if scanned for at least 2 seconds
+              const details = getAnalysisDetailsFromScore(Math.round(finalAvg));
+              saveHistory({
+                userId: auth.currentUser.uid,
+                type: "facial",
+                score: Math.round(finalAvg),
+                stressLevel: details.level,
+                mood: finalEmotion,
+                avgStress: Math.round(finalAvg),
+                peakStress: Math.round(finalPeak),
+                dominantEmotion: finalEmotion,
+                duration: finalTime
+              }).catch(e => console.error(e));
+              
+              sessionStorage.setItem("calmmate_scan_state", JSON.stringify({
+                stressScore: Math.round(finalAvg),
+                peakStress: finalPeak,
+                avgStress: finalAvg,
+                timelineData: finalTimeline,
+                emotions: finalEmotions,
+                dominantEmotion: finalEmotion,
+                sessionTime: finalTime
+              }));
+           }
+        }
+        return false;
+      });
+
+      if (videoRef.current?.srcObject) {
+         (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -263,13 +445,13 @@ const Analysis = () => {
             className="flex items-center justify-between mb-4"
           >
             {isRunning ? (
-              <Button variant="destructive" onClick={stopAnalysis}>
-                <StopCircle className="w-4 h-4 mr-2" /> Stop Analysis
+              <Button disabled variant="outline" className="border-primary text-primary">
+                <StopCircle className="w-4 h-4 mr-2 animate-pulse" /> Scanning... {10 - sessionTime}s remaining
               </Button>
             ) : (
               <Button onClick={startAnalysis} disabled={isLoading || !!modelError} className="glow-primary">
                 <Camera className="w-4 h-4 mr-2" />
-                {isLoading ? "Loading Models..." : modelError ? "Error" : "Start Analysis"}
+                {isLoading ? "Loading Models..." : modelError ? "Error" : "Start Live Mood Scan"}
               </Button>
             )}
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -294,7 +476,7 @@ const Analysis = () => {
                 <div className="absolute bottom-2 left-2 w-8 h-8 border-b-2 border-l-2 border-primary z-10" />
                 <div className="absolute bottom-2 right-2 w-8 h-8 border-b-2 border-r-2 border-primary z-10" />
 
-                <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+                <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                 <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
                 {/* ANALYZING badge */}
@@ -317,7 +499,7 @@ const Analysis = () => {
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/80">
                     <Camera className="w-16 h-16 text-muted-foreground mb-4" />
                     <p className="text-muted-foreground mb-4">
-                      {isLoading ? "Loading AI models..." : modelError || "Click Start Analysis to begin"}
+                      {isLoading ? "Loading AI models..." : modelError || (mode === "post" ? "Click Start to begin post-activity scan" : "Click Start Live Mood Scan to begin")}
                     </p>
                   </div>
                 )}

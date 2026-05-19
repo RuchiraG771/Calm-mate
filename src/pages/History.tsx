@@ -20,7 +20,10 @@ import {
   Tooltip,
   ResponsiveContainer,
   AreaChart,
-  Area
+  Area,
+  BarChart,
+  Bar,
+  Legend
 } from "recharts";
 import Navbar from "@/components/Navbar";
 import { auth } from "@/lib/firebase";
@@ -30,6 +33,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { generateImprovementSummary } from "@/lib/utils";
 
 const History = () => {
   const [history, setHistory] = useState<AnalysisHistory[]>([]);
@@ -40,6 +44,7 @@ const History = () => {
     totalSessions: 0,
     trend: 0, // difference between last session and avg
   });
+  const [selectedCombinedId, setSelectedCombinedId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -79,7 +84,7 @@ const History = () => {
     date: format(item.timestamp, "MMM dd"),
     fullDate: format(item.timestamp, "MMM dd, HH:mm"),
     score: item.score,
-    type: item.type === "quiz" ? "Quiz" : "AI Scan",
+    type: item.type === "combined" ? "Comparison" : item.type === "quiz" ? "Quiz" : "Live Scan",
   }));
 
   if (loading) {
@@ -124,49 +129,13 @@ const History = () => {
             </p>
             <div className="flex gap-4 pt-4">
               <Button onClick={() => window.location.href = '/questionnaire'}>Take Quiz</Button>
-              <Button variant="outline" onClick={() => window.location.href = '/analysis'}>AI Analysis</Button>
+              <Button variant="outline" onClick={() => window.location.href = '/analysis'}>Live Mood Scan</Button>
             </div>
           </div>
         ) : (
           <>
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="glass-card border-border/40">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Average Stress</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.avgScore}%</div>
-                  <p className="text-xs text-muted-foreground mt-1">Across all sessions</p>
-                </CardContent>
-              </Card>
-              <Card className="glass-card border-border/40">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Peak Stress</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-destructive">{stats.peakScore}%</div>
-                  <p className="text-xs text-muted-foreground mt-1">Highest recorded</p>
-                </CardContent>
-              </Card>
-              <Card className="glass-card border-border/40">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Recent Trend</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <div className="text-2xl font-bold">
-                      {stats.trend > 0 ? `+${stats.trend}` : stats.trend}%
-                    </div>
-                    {stats.trend > 0 ? (
-                      <TrendingUp className="w-5 h-5 text-destructive" />
-                    ) : (
-                      <TrendingDown className="w-5 h-5 text-emerald-500" />
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">vs. historical average</p>
-                </CardContent>
-              </Card>
               <Card className="glass-card border-border/40">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">Total Sessions</CardTitle>
@@ -177,6 +146,101 @@ const History = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Neural Shift Analysis */}
+            {history.find(h => h.type === "combined") && (() => {
+              const activeCombined = selectedCombinedId 
+                ? history.find(h => h.id === selectedCombinedId) 
+                : history.find(h => h.type === "combined");
+                
+              if (!activeCombined) return null;
+              
+              const beforeM = activeCombined.beforeMetrics || {};
+              const afterM = activeCombined.afterMetrics || {};
+              const metrics = ["Stress", "Anxiety", "Happiness", "Calmness", "Energy"];
+              const barData = metrics.map(m => ({
+                name: m,
+                Before: beforeM[m] || 0,
+                After: afterM[m] || 0,
+              }));
+              const isImproved = (activeCombined.improvementScore || 0) > 50;
+              const summary = generateImprovementSummary(beforeM, afterM);
+
+              return (
+                <Card className="glass-card border-cyan-500/30 overflow-hidden relative group shadow-[0_0_30px_rgba(34,211,238,0.1)]">
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <CardHeader className="border-b border-white/5 bg-black/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-purple-500/20 border border-purple-500/30">
+                          <Brain className="w-5 h-5 text-purple-400" />
+                        </div>
+                        <div>
+                          <CardTitle className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">Neural Shift Analysis</CardTitle>
+                          <CardDescription className="text-cyan-400/60 font-medium text-xs tracking-widest uppercase mt-1">
+                            {activeCombined.timestamp ? format(activeCombined.timestamp, "MMM dd, yyyy • HH:mm") : "Post-Activity Scan"}
+                          </CardDescription>
+                        </div>
+                      </div>
+                      <div className="text-right hidden sm:block">
+                        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">Improvement Score</div>
+                        <div className={`text-2xl font-black ${isImproved ? 'text-cyan-400' : 'text-white/80'}`}>{activeCombined.improvementScore}%</div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6 grid md:grid-cols-3 gap-8">
+                    <div className="md:col-span-2 h-[300px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={barData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorBefore" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#a855f7" stopOpacity={1} />
+                              <stop offset="100%" stopColor="#a855f7" stopOpacity={0.2} />
+                            </linearGradient>
+                            <linearGradient id="colorAfter" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#22d3ee" stopOpacity={1} />
+                              <stop offset="100%" stopColor="#22d3ee" stopOpacity={0.2} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} dy={10} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10 }} domain={[0, 100]} />
+                          <Tooltip 
+                            cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                            contentStyle={{ backgroundColor: 'rgba(10, 10, 31, 0.9)', borderColor: 'rgba(34, 211, 238, 0.2)', borderRadius: '12px' }}
+                            itemStyle={{ fontSize: '14px', fontWeight: 700 }}
+                          />
+                          <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
+                          <Bar dataKey="Before" fill="url(#colorBefore)" radius={[4, 4, 0, 0]} barSize={20} />
+                          <Bar dataKey="After" fill="url(#colorAfter)" radius={[4, 4, 0, 0]} barSize={20} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="bg-black/30 p-4 rounded-xl border border-white/5 relative overflow-hidden">
+                        <div className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                          AI Synthesis
+                        </div>
+                        <p className="text-sm text-white/80 italic leading-relaxed">"{summary}"</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-center pt-2">
+                         <div className="bg-black/20 p-3 rounded-xl border border-white/5">
+                            <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Pre-Activity</div>
+                            <div className="text-xl font-bold text-purple-400">{barData[0].Before}%</div>
+                            <div className="text-[9px] text-muted-foreground uppercase mt-1">Stress</div>
+                         </div>
+                         <div className="bg-black/20 p-3 rounded-xl border border-white/5">
+                            <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Post-Activity</div>
+                            <div className="text-xl font-bold text-cyan-400">{barData[0].After}%</div>
+                            <div className="text-[9px] text-muted-foreground uppercase mt-1">Stress</div>
+                         </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {/* Comparison Chart */}
             <Card className="glass-card border-border/40 overflow-hidden">
@@ -255,12 +319,20 @@ const History = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="group p-4 rounded-xl border border-border/40 bg-card/50 hover:bg-card hover:border-primary/30 transition-all flex items-center justify-between"
+                    onClick={() => {
+                       if (item.type === 'combined') {
+                           setSelectedCombinedId(item.id || null);
+                           window.scrollTo({ top: 0, behavior: 'smooth' });
+                       }
+                    }}
+                    className={`group p-4 rounded-xl border ${selectedCombinedId === item.id ? 'border-purple-500 bg-purple-500/10' : 'border-border/40 bg-card/50'} hover:bg-card hover:border-primary/30 transition-all flex items-center justify-between ${item.type === 'combined' ? 'cursor-pointer' : ''}`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`p-2.5 rounded-lg ${item.type === 'quiz' ? 'bg-amber-500/10' : 'bg-cyan-500/10'}`}>
+                      <div className={`p-2.5 rounded-lg ${item.type === 'quiz' ? 'bg-amber-500/10' : item.type === 'combined' ? 'bg-purple-500/10' : 'bg-cyan-500/10'}`}>
                         {item.type === 'quiz' ? (
                           <Brain className="w-5 h-5 text-amber-500" />
+                        ) : item.type === 'combined' ? (
+                          <TrendingUp className="w-5 h-5 text-purple-500" />
                         ) : (
                           <Camera className="w-5 h-5 text-cyan-500" />
                         )}
@@ -268,10 +340,10 @@ const History = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-foreground">
-                            {item.type === 'quiz' ? 'Questionnaire' : 'AI Facial Scan'}
+                            {item.type === 'quiz' ? 'Questionnaire' : item.type === 'combined' ? 'Activity Comparison' : 'Live Mood Scan'}
                           </span>
                           <Badge variant="outline" className="text-[10px] uppercase tracking-wider py-0 h-5">
-                            {item.stressLevel}
+                            {item.type === 'combined' ? `${item.improvementScore}% Improved` : item.stressLevel}
                           </Badge>
                         </div>
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">

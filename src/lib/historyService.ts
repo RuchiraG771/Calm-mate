@@ -13,7 +13,7 @@ import {
 export interface AnalysisHistory {
   id?: string;
   userId: string;
-  type: "quiz" | "facial";
+  type: "quiz" | "facial" | "combined";
   timestamp: Date;
   score: number;
   stressLevel: string;
@@ -24,6 +24,10 @@ export interface AnalysisHistory {
   peakStress?: number;
   dominantEmotion?: string;
   duration?: number; // in seconds
+  // For combined scans
+  beforeMetrics?: Record<string, number>;
+  afterMetrics?: Record<string, number>;
+  improvementScore?: number;
 }
 
 export const saveHistory = async (data: Omit<AnalysisHistory, "id" | "timestamp">) => {
@@ -45,15 +49,16 @@ export const getUserHistory = async (userId: string) => {
     const historyRef = collection(db, "analysis_history");
     const q = query(
       historyRef, 
-      where("userId", "==", userId), 
-      orderBy("timestamp", "desc")
+      where("userId", "==", userId)
     );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
+    const docs = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       timestamp: (doc.data().timestamp as Timestamp).toDate(),
     })) as AnalysisHistory[];
+    
+    return docs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   } catch (error) {
     console.error("Error fetching analysis history:", error);
     throw error;
@@ -65,18 +70,19 @@ export const getLatestSession = async (userId: string) => {
     const historyRef = collection(db, "analysis_history");
     const q = query(
       historyRef, 
-      where("userId", "==", userId), 
-      orderBy("timestamp", "desc"),
-      limit(1)
+      where("userId", "==", userId)
     );
     const querySnapshot = await getDocs(q);
     if (querySnapshot.empty) return null;
-    const doc = querySnapshot.docs[0];
-    return {
+    
+    const docs = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       timestamp: (doc.data().timestamp as Timestamp).toDate(),
-    } as AnalysisHistory;
+    })) as AnalysisHistory[];
+    
+    docs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return docs[0];
   } catch (error) {
     console.error("Error fetching latest session:", error);
     throw error;

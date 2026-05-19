@@ -102,20 +102,6 @@ const RealTimeRecommendations = ({ stressScore }: RealTimeRecommendationsProps) 
                         >
                           <Play className="w-3 h-3 mr-1" /> Start
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="h-6 text-[10px] px-2 bg-background/50 hover:bg-background" 
-                          onClick={() => {
-                            setCompletedSteps([...completedSteps, i]);
-                            import("@/lib/utils").then(u => {
-                              u.addUserPoints(10);
-                              window.dispatchEvent(new Event("pointsUpdated"));
-                            });
-                          }}
-                        >
-                          Done
-                        </Button>
                       </>
                     )}
                   </div>

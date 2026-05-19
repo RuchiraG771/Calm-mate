@@ -55,7 +55,7 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button asChild size="lg" className="text-base px-8 glow-primary">
                 <Link to="/analysis">
-                  Start Analysis <ArrowRight className="w-4 h-4 ml-1" />
+                  Start Live Mood Scan <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
             </div>
