@@ -135,6 +135,64 @@ export function clearActivitySequence() {
 // Reward System Logic
 export const USER_POINTS_KEY = "calmmate_user_points";
 export const LAST_COMPLETION_DATE_KEY = "calmmate_last_completion_date";
+export const STUDENT_ID_KEY = "calmmate_student_id";
+export const USER_HEARTS_KEY = "calmmate_user_hearts";
+export const MAX_HEARTS = 3;
+
+export function getStudentId(): string {
+  let id = localStorage.getItem(STUDENT_ID_KEY);
+  if (!id) {
+    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    id = `CALM-${randomSuffix}`;
+    localStorage.setItem(STUDENT_ID_KEY, id);
+  }
+  return id;
+}
+
+export function getUserHearts(): number {
+  const hearts = localStorage.getItem(USER_HEARTS_KEY);
+  if (hearts === null) {
+    localStorage.setItem(USER_HEARTS_KEY, MAX_HEARTS.toString());
+    return MAX_HEARTS;
+  }
+  return parseInt(hearts);
+}
+
+export function checkDailyHeartDeduction() {
+  const lastDateStr = localStorage.getItem(LAST_COMPLETION_DATE_KEY);
+  if (!lastDateStr) return 0;
+
+  const lastDate = new Date(lastDateStr);
+  const now = new Date();
+  
+  const startOfLastDate = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
+  const startOfNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  const diffTime = startOfNow.getTime() - startOfLastDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays >= 2) {
+    const missedDays = diffDays - 1;
+    const currentHearts = getUserHearts();
+    const newHearts = Math.max(0, currentHearts - missedDays);
+    localStorage.setItem(USER_HEARTS_KEY, newHearts.toString());
+    
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    localStorage.setItem(LAST_COMPLETION_DATE_KEY, yesterday.toISOString());
+    
+    return missedDays;
+  }
+  return 0;
+}
+
+export function completeSessionAndUpdateHearts() {
+  const currentHearts = getUserHearts();
+  const newHearts = Math.min(MAX_HEARTS, currentHearts + 1);
+  localStorage.setItem(USER_HEARTS_KEY, newHearts.toString());
+  localStorage.setItem(LAST_COMPLETION_DATE_KEY, new Date().toISOString());
+  window.dispatchEvent(new Event("heartsUpdated"));
+}
 
 export function getUserPoints(): number {
   const points = localStorage.getItem(USER_POINTS_KEY);

@@ -171,6 +171,14 @@ const Questionnaire = () => {
       <Navbar />
       <div className="flex-1 pt-24 pb-12 px-6 flex items-center justify-center">
         <div className="w-full max-w-2xl mx-auto">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-3 flex items-center justify-center gap-3">
+              <Brain className="w-10 h-10 text-cyan-400" />
+              Questionnaire
+            </h1>
+            <p className="text-muted-foreground">Complete this quick assessment for personalized wellness recommendations.</p>
+          </div>
+
           {!result ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}

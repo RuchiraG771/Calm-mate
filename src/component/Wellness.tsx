@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import Navbar from "./Navbar";
-import { getActivitySequence, updateActivitySequenceIndex, clearActivitySequence, getTabFromSuggestion, getAnalysisDetailsFromScore, addUserPoints } from "@/lib/utils";
+import { getActivitySequence, updateActivitySequenceIndex, clearActivitySequence, getTabFromSuggestion, getAnalysisDetailsFromScore, addUserPoints, getStudentId, getUserHearts, checkDailyHeartDeduction, completeSessionAndUpdateHearts, MAX_HEARTS } from "@/lib/utils";
 import { CheckCircle, ArrowRight, Home, Sparkles, ArrowLeft, Play, Pause, Volume2, Heart, SkipForward, SkipBack } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { auth } from "@/lib/firebase";
 import { saveHistory } from "@/lib/historyService";
+import YogaFigure from "./YogaFigure";
+
 
 function Wellness({ defaultTab: propDefaultTab }: any) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -16,6 +18,18 @@ function Wellness({ defaultTab: propDefaultTab }: any) {
   const [activeTab, setActiveTab] = useState(queryTab || propDefaultTab || "breathing");
   const [sequence, setSequence] = useState<any>(getActivitySequence());
   const [isCompleted, setIsCompleted] = useState(false);
+  const [studentId, setStudentId] = useState("");
+  const [hearts, setHearts] = useState(3);
+
+  useEffect(() => {
+    setStudentId(getStudentId());
+    checkDailyHeartDeduction();
+    setHearts(getUserHearts());
+
+    const handleHeartsUpdate = () => setHearts(getUserHearts());
+    window.addEventListener("heartsUpdated", handleHeartsUpdate);
+    return () => window.removeEventListener("heartsUpdated", handleHeartsUpdate);
+  }, []);
 
   // Sync tab with URL
   useEffect(() => {
@@ -69,18 +83,18 @@ function Wellness({ defaultTab: propDefaultTab }: any) {
       if (count <= 0) { cp = (cp + 1) % cfg.phases.length; count = cfg.durations[cp]; setBreathPhase(cp); setPhase(cfg.phases[cp]); setTimeLeft(count); }
     }, 1000);
   };
-  const stopBreathing = () => { clearInterval(timerRef.current); setTimerActive(false); setTimeLeft(0); setPhase(""); };
+  const stopBreathing = () => { clearInterval(timerRef.current); setTimerActive(false); setTimeLeft(0); setPhase(""); completeSessionAndUpdateHearts(); };
   useEffect(() => () => clearInterval(timerRef.current), []);
 
   const startMeditation = (med: any) => {
     setCurrentMed(med); setMedTimeLeft(med.duration * 60); setMedActive(true);
-    medRef.current = setInterval(() => setMedTimeLeft((p: number) => { if (p <= 1) { clearInterval(medRef.current); setMedActive(false); return 0; } return p - 1; }), 1000);
+    medRef.current = setInterval(() => setMedTimeLeft((p: number) => { if (p <= 1) { clearInterval(medRef.current); setMedActive(false); completeSessionAndUpdateHearts(); return 0; } return p - 1; }), 1000);
   };
   const stopMeditation = () => { clearInterval(medRef.current); setMedActive(false); };
 
   const startYoga = (yoga: any) => {
     setCurrentYoga(yoga); setYogaTimeLeft(yoga.duration * 60); setYogaActive(true);
-    yogaRef.current = setInterval(() => setYogaTimeLeft((p: number) => { if (p <= 1) { clearInterval(yogaRef.current); setYogaActive(false); return 0; } return p - 1; }), 1000);
+    yogaRef.current = setInterval(() => setYogaTimeLeft((p: number) => { if (p <= 1) { clearInterval(yogaRef.current); setYogaActive(false); completeSessionAndUpdateHearts(); return 0; } return p - 1; }), 1000);
   };
   const stopYoga = () => { clearInterval(yogaRef.current); setYogaActive(false); };
 
@@ -112,6 +126,7 @@ function Wellness({ defaultTab: propDefaultTab }: any) {
       
       // Award points for completing the session
       addUserPoints(50);
+      completeSessionAndUpdateHearts();
       window.dispatchEvent(new Event("pointsUpdated"));
       
       // Initiate post-activity scan
@@ -180,19 +195,19 @@ function Wellness({ defaultTab: propDefaultTab }: any) {
   ];
 
   const YOGA_POSES = [
-    { title: "Surya Namaskar", duration: 10, desc: "Sun Salutation sequence for energy", icon: "☀️" },
-    { title: "Hasya Yoga", duration: 5, desc: "Laughter yoga for mood elevation", icon: "😄" },
-    { title: "Vinyasa Flow", duration: 15, desc: "Fluid movement synchronized with breath", icon: "🌊" },
-    { title: "Bhastrika Pranayama", duration: 5, desc: "Bellows breath for vitality", icon: "💨" },
-    { title: "Tadasana", duration: 3, desc: "Mountain pose for posture and balance", icon: "🏔️" },
-    { title: "Vrikshasana", duration: 3, desc: "Tree pose for focus and stability", icon: "🌳" },
-    { title: "Balasana", duration: 5, desc: "Child's pose for gentle relaxation", icon: "👶" },
-    { title: "Anulom Vilom", duration: 5, desc: "Alternate nostril breathing for balance", icon: "☯️" },
-    { title: "Cat-Cow", duration: 5, desc: "Spinal flexibility and stress release", icon: "🐈" },
-    { title: "Paschimottanasana", duration: 5, desc: "Seated forward bend for calming the mind", icon: "🧘" },
-    { title: "Setu Bandhasana", duration: 5, desc: "Bridge pose for heart opening", icon: "🌉" },
-    { title: "Shavasana", duration: 10, desc: "Corpse pose for deep rest", icon: "🛌" },
-    { title: "Legs-up-the-wall", duration: 10, desc: "Passive inversion for anxiety relief", icon: "🧱" },
+    { title: "Surya Namaskar", duration: 10, desc: "Sun Salutation sequence for energy", icon: "☀️", img: "/images/yoga_standing.png" },
+    { title: "Hasya Yoga", duration: 5, desc: "Laughter yoga for mood elevation", icon: "😄", img: "/images/yoga_sitting.png" },
+    { title: "Vinyasa Flow", duration: 15, desc: "Fluid movement synchronized with breath", icon: "🌊", img: "/images/yoga_standing.png" },
+    { title: "Bhastrika Pranayama", duration: 5, desc: "Bellows breath for vitality", icon: "💨", img: "/images/yoga_sitting.png" },
+    { title: "Tadasana", duration: 3, desc: "Mountain pose for posture and balance", icon: "🏔️", img: "/images/yoga_standing.png" },
+    { title: "Vrikshasana", duration: 3, desc: "Tree pose for focus and stability", icon: "🌳", img: "/images/yoga_standing.png" },
+    { title: "Balasana", duration: 5, desc: "Child's pose for gentle relaxation", icon: "👶", img: "/images/yoga_sitting.png" },
+    { title: "Anulom Vilom", duration: 5, desc: "Alternate nostril breathing for balance", icon: "☯️", img: "/images/yoga_sitting.png" },
+    { title: "Cat-Cow", duration: 5, desc: "Spinal flexibility and stress release", icon: "🐈", img: "/images/yoga_sitting.png" },
+    { title: "Paschimottanasana", duration: 5, desc: "Seated forward bend for calming the mind", icon: "🧘", img: "/images/yoga_sitting.png" },
+    { title: "Setu Bandhasana", duration: 5, desc: "Bridge pose for heart opening", icon: "🌉", img: "/images/yoga_sitting.png" },
+    { title: "Shavasana", duration: 10, desc: "Corpse pose for deep rest", icon: "🛌", img: "/images/yoga_sitting.png" },
+    { title: "Legs-up-the-wall", duration: 10, desc: "Passive inversion for anxiety relief", icon: "🧱", img: "/images/yoga_sitting.png" },
   ];
 
   if (isCompleted) {
@@ -299,14 +314,14 @@ function Wellness({ defaultTab: propDefaultTab }: any) {
             
             <div className="flex items-center gap-6 bg-white/5 backdrop-blur-md border border-white/10 p-3 rounded-2xl shadow-2xl">
               <div className="flex gap-1.5 px-3 py-1.5 bg-red-500/10 rounded-full border border-red-500/20">
-                <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-                <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-                <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+                {[...Array(MAX_HEARTS)].map((_, i) => (
+                  <Heart key={i} className={`w-4 h-4 ${i < hearts ? "text-red-500 fill-red-500" : "text-white/20 fill-white/10"}`} />
+                ))}
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
                   <div className="text-xs text-cyan-400/50 uppercase font-bold tracking-tighter leading-none">Student ID</div>
-                  <div className="text-sm font-bold text-white tracking-widest leading-tight">CALM-X88</div>
+                  <div className="text-sm font-bold text-white tracking-widest leading-tight">{studentId || "CALM-..."}</div>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 border-2 border-white/20 shadow-lg" />
               </div>
@@ -342,8 +357,8 @@ function Wellness({ defaultTab: propDefaultTab }: any) {
             </motion.div>
           )}
 
-          {/* Futuristic Tabs */}
-          <div className="flex flex-wrap gap-2 mb-12 p-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-x-auto no-scrollbar">
+          {/* Simple Tabs */}
+          <div className="flex flex-wrap gap-2 mb-12 p-2 rounded-2xl overflow-x-auto no-scrollbar">
             {[
               { id: "breathing", label: "Breathing", icon: "🌬️" },
               { id: "meditation", label: "Meditation", icon: "🧘" },
@@ -355,9 +370,9 @@ function Wellness({ defaultTab: propDefaultTab }: any) {
             ].map(t => (
               <button
                 key={t.id}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-500 whitespace-nowrap ${
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 whitespace-nowrap ${
                   activeTab === t.id 
-                    ? "bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] scale-105" 
+                    ? "bg-cyan-600 text-white" 
                     : "text-white/40 hover:text-white/80 hover:bg-white/5"
                 }`}
                 onClick={() => setActiveTab(t.id)}
@@ -505,20 +520,38 @@ function Wellness({ defaultTab: propDefaultTab }: any) {
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center py-20 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem]">
-                    <div className="text-8xl mb-8 animate-pulse">{currentYoga.icon}</div>
-                    <h2 className="text-3xl font-black text-white uppercase tracking-widest mb-2">{currentYoga.title}</h2>
-                    <p className="text-purple-400/60 font-bold mb-10 uppercase tracking-widest">Hold the posture</p>
-                    <div className="text-8xl font-black text-white tracking-tighter mb-12 tabular-nums">
+                  <div className="flex flex-col items-center py-12 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] relative overflow-hidden">
+                    <motion.div 
+                      className="absolute inset-0 bg-gradient-to-t from-purple-500/10 to-transparent"
+                      animate={{ opacity: [0.3, 0.6, 0.3] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    
+                    <motion.div
+                      className="relative z-10 w-72 h-72 mb-8 rounded-[3rem] border-4 border-purple-500/30 overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.3)] bg-[#0a0a1f]/80 backdrop-blur-xl flex items-center justify-center"
+                      animate={{ 
+                        boxShadow: ["0 0 40px rgba(168,85,247,0.2)", "0 0 80px rgba(168,85,247,0.6)", "0 0 40px rgba(168,85,247,0.2)"],
+                        y: [-10, 10, -10]
+                      }}
+                      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <YogaFigure poseName={currentYoga.title} />
+                    </motion.div>
+                    
+                    <h2 className="text-4xl font-black text-white uppercase tracking-widest mb-2 z-10 text-center px-4">{currentYoga.title}</h2>
+                    <p className="text-purple-400/80 font-bold mb-8 uppercase tracking-widest z-10 text-center px-4">{currentYoga.desc}</p>
+                    
+                    <div className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 tracking-tighter mb-12 tabular-nums z-10">
                       {formatTime(yogaTimeLeft)}
                     </div>
+                    
                     <Button 
                       size="lg" 
                       variant="outline" 
-                      className="border-red-500/30 text-red-400 hover:bg-red-500/10 px-12 h-16 text-lg font-black uppercase tracking-widest rounded-2xl" 
+                      className="border-red-500/30 text-red-400 hover:bg-red-500/10 px-12 h-16 text-lg font-black uppercase tracking-widest rounded-2xl z-10 transition-all duration-300" 
                       onClick={stopYoga}
                     >
-                      Cancel Session
+                      End Session
                     </Button>
                   </div>
                 )}

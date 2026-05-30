@@ -4,6 +4,7 @@ import RealTimeRecommendations from "./analysis/RealTimeRecommendations";
 import { getAnalysisDetailsFromScore } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 import { saveHistory } from "@/lib/historyService";
+import { Brain } from "lucide-react";
 
 async function analyzeTextWithAI(text: string) {
   const lower = text.toLowerCase();
@@ -69,8 +70,13 @@ function TextAnalysis() {
       <Navbar />
       <div className="pt-24 pb-12 px-6">
         <div className="max-w-3xl mx-auto">
-          <div className="page-title text-3xl font-bold mb-2 text-center">✍️ Text Mood Analysis</div>
-          <p className="text-muted-foreground text-center mb-10">Express your thoughts and let AI understand your emotional state</p>
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-3 flex items-center justify-center gap-3">
+              <Brain className="w-10 h-10 text-cyan-400" />
+              Text Mood Analysis
+            </h1>
+            <p className="text-muted-foreground">Express your thoughts and let AI understand your emotional state.</p>
+          </div>
 
           {!result ? (
             <div className="glass-card rounded-xl p-8 max-w-2xl mx-auto border border-border/50 shadow-lg">
